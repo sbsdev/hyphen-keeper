@@ -17,7 +17,11 @@
                   :scope "provided"]
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7"
-                  :exclusions [org.clojure/tools.reader]]]
+                  :exclusions [org.clojure/tools.reader]]
+                 [yesql "0.5.3"]
+                 [mysql/mysql-connector-java "5.1.6"]
+                 [org.clojure/data.xml "0.1.0-beta3"]
+                 [org.clojure/data.zip "0.1.2"]]
 
   :plugins [[lein-environ "1.0.2"]
             [lein-cljsbuild "1.1.1"]
