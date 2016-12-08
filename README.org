@@ -5,3 +5,9 @@ A small web app to keep a whitelist of approved hyphenation patterns.
 This web app will let you maintain a list of words and their approved
 hyphenation patterns. In the background it will generate hyphenation
 pattern files to be used with [[https://github.com/hunspell/hyphen][libhyphen]].
+
+** License
+
+Copyright © 2016 Swiss Library for the Blind, Visually Impaired and Print Disabled.
+
+Distributed under the [[http://www.gnu.org/licenses/agpl-3.0.html][GNU Affero General Public License]]. See the file LICENSE.
