@@ -1,6 +1,6 @@
 -- name: words
 -- Get the words for given spelling
-SELECT word, hyphenation
+SELECT word, hyphenation, spelling
 FROM words
 WHERE spelling = :spelling
 
