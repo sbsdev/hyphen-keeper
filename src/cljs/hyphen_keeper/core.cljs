@@ -6,27 +6,6 @@
             [reagent.session :as session]
             [secretary.core :as secretary :include-macros true]))
 
-(defn load-hyphenation-patterns!
-  [state]
-  (ajax/GET "/api/0/words"
-            :handler (fn [hyphenations] (swap! state assoc :hyphenations hyphenations))
-            :error-handler (fn [details]
-                             (.warn js/console
-                                    (str "Failed to refresh hyphenation patterns from server: " details)))
-            :response-format :json
-            :keywords? true))
-
-(defn add-hyphenation-pattern!
-  [state word hyphenation]
-  (let [pattern {:word word :hyphenation hyphenation}]
-    (ajax/POST "/api/0/words"
-               :params pattern
-               :handler (fn [] (swap! state update-in [:hyphenations] conj pattern))
-               :error-handler (fn [details]
-                                (.warn js/console
-                                       (str "Failed to add hyphenation pattern: " details)))
-               :format :json)))
-
 (defonce app-state
   (reagent/atom
    {:hyphenations []}))
@@ -40,13 +19,44 @@
 (defn remove-hyphenation! [h]
   (update-hyphenations! (fn [hs] (vec (remove #(= % h) hs))) h))
 
-(defn hyphenation-pattern [h]
+(defn load-hyphenation-patterns!
+  [state]
+  (ajax/GET "/api/words"
+            :params {:spelling 0}
+            :handler (fn [hyphenations] (swap! state assoc :hyphenations hyphenations))
+            :error-handler (fn [details]
+                             (.warn js/console
+                                    (str "Failed to refresh hyphenation patterns from server: " details)))
+            :response-format :json
+            :keywords? true))
+
+(defn add-hyphenation-pattern!
+  [pattern]
+  (ajax/POST "/api/words"
+             :params pattern
+             :handler (fn [] (add-hyphenation! pattern))
+             :error-handler (fn [details]
+                              (.warn js/console
+                                     (str "Failed to add hyphenation pattern: " details)))
+             :format :json))
+
+(defn remove-hyphenation-pattern!
+  [pattern]
+  (ajax/DELETE (str "/api/words/" (:word pattern))
+               :params pattern
+               :handler (fn [] (remove-hyphenation! pattern))
+               :error-handler (fn [details]
+                                (.warn js/console
+                                       (str "Failed to remove hyphenation pattern: " details)))
+               :format :json))
+
+(defn hyphenation-pattern [pattern]
   [:tr
-   [:td (:word h)]
-   [:td (:hyphenation h)]
+   [:td (:word pattern)]
+   [:td (:hyphenation pattern)]
    [:td
     [:button.btn.btn-default
-     {:on-click #(remove-hyphenation! h)}
+     {:on-click #(remove-hyphenation-pattern! pattern)}
      [:span.glyphicon.glyphicon-remove {:aria-hidden true}] " Delete"]]])
 
 (defn word-field [val]
@@ -77,7 +87,7 @@
        [hyphenation-field hyphenation]
        [:button.btn.btn-default
         {:on-click #(when (and @word @hyphenation)
-                      (add-hyphenation-pattern! app-state @word @hyphenation)
+                      (add-hyphenation-pattern! {:word @word :hyphenation @hyphenation :spelling 0})
                       (reset! word "")
                       (reset! hyphenation ""))
          :disabled (when (or (string/blank? @word)

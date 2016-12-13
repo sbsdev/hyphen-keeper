@@ -16,6 +16,6 @@
   (-> {:word word :hyphenation hyphenation :spelling spelling}
       save-word-internal!))
 
-(defn remove-word! [word hyphenation spelling]
-  (-> {:word word :hyphenation hyphenation :spelling spelling}
+(defn remove-word! [word spelling]
+  (-> {:word word :spelling spelling}
       remove-word-internal!))

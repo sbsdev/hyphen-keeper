@@ -15,5 +15,4 @@ hyphenation = values(hyphenation);
 -- Delete the given `word` from the dictionary.
 DELETE FROM words
 WHERE word = :word
-AND hyphenation = :hyphenation
 AND spelling = :spelling

@@ -32,20 +32,20 @@
 (defn- word-list [spelling]
   (response/response (db/read-words spelling)))
 
-(defn- word-add [spelling word hyphenation]
+(defn- word-add [word hyphenation spelling]
   (db/save-word! word hyphenation spelling)
   (response/created (str "/api/" spelling "/" word)))
 
-(defn- word-delete [spelling {:keys [word hyphenation]}]
-  (db/remove-word! word hyphenation spelling)
-  (response/response))
+(defn- word-delete [word spelling]
+  (db/remove-word! word spelling)
+  (response/response nil))
 
 (defroutes api-routes
-  (context "/api/:spelling" [spelling]
-   (GET "/words" [] (word-list spelling))
-   (POST "/words" [word hyphenation :as r] (do (println r) (word-add spelling word hyphenation)))
-   (PUT "/words" [r] (word-add spelling r))
-   (DELETE "/words" [r] (word-delete spelling r))))
+  (context "/api" []
+   (GET "/words" [spelling] (word-list spelling))
+   (POST "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
+   (PUT "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
+   (DELETE "/words/:word" [word spelling] (word-delete word spelling))))
 
 (defroutes site-routes
   (GET "/" [] (loading-page))
