@@ -34,11 +34,13 @@
 
 (defn- word-add [word hyphenation spelling]
   (db/save-word! word hyphenation spelling)
-  (response/created (str "/api/" spelling "/" word)))
+  (response/created (str "/api/words/" word)))
 
 (defn- word-delete [word spelling]
   (db/remove-word! word spelling)
-  (response/response nil))
+  (-> nil
+   response/response
+   (response/status 204)))
 
 (defroutes api-routes
   (context "/api" []
