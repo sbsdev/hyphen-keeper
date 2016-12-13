@@ -101,7 +101,7 @@
    [:table#hyphenations.table.table-striped
     [:thead [:tr [:th "Word"] [:th "Hyphenation"]]]
     [:tbody
-     (for [h (:hyphenations @app-state)]
+     (for [h (sort-by :word (:hyphenations @app-state))]
        ^{:key (:word h)} [hyphenation-pattern h])]]
    [new-hyphenation]])
 
