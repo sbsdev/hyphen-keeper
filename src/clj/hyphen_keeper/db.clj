@@ -15,3 +15,7 @@
   "Persist `word` with given `hyphenation` and `spelling`"
   (-> {:word word :hyphenation hyphenation :spelling spelling}
       save-word-internal!))
+
+(defn remove-word! [word hyphenation spelling]
+  (-> {:word word :hyphenation hyphenation :spelling spelling}
+      remove-word-internal!))

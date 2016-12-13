@@ -1,9 +1,12 @@
 (ns hyphen-keeper.handler
-  (:require [compojure.core :refer [GET defroutes]]
-            [compojure.route :refer [not-found resources]]
-            [hiccup.page :refer [include-js include-css html5]]
-            [hyphen-keeper.middleware :refer [wrap-middleware]]
-            [config.core :refer [env]]))
+  (:require [compojure
+             [core :refer [context defroutes DELETE GET POST PUT]]
+             [route :refer [not-found resources]]]
+            [hiccup.page :refer [html5 include-css include-js]]
+            [hyphen-keeper
+             [db :as db]
+             [middleware :refer [wrap-api-middleware wrap-site-middleware]]]
+            [ring.util.response :as response]))
 
 (def mount-target
   [:div#app
@@ -26,18 +29,29 @@
      mount-target
      (include-js "/js/app.js")]))
 
-(defn cards-page []
-  (html5
-    (head)
-    [:body
-     mount-target
-     (include-js "/js/app_devcards.js")]))
+(defn- word-list [spelling]
+  (response/response (db/read-words spelling)))
 
-(defroutes routes
+(defn- word-add [spelling word hyphenation]
+  (db/save-word! word hyphenation spelling)
+  (response/created (str "/api/" spelling "/" word)))
+
+(defn- word-delete [spelling {:keys [word hyphenation]}]
+  (db/remove-word! word hyphenation spelling)
+  (response/response))
+
+(defroutes api-routes
+  (context "/api/:spelling" [spelling]
+   (GET "/words" [] (word-list spelling))
+   (POST "/words" [word hyphenation :as r] (do (println r) (word-add spelling word hyphenation)))
+   (PUT "/words" [r] (word-add spelling r))
+   (DELETE "/words" [r] (word-delete spelling r))))
+
+(defroutes site-routes
   (GET "/" [] (loading-page))
-  (GET "/about" [] (loading-page))
-  (GET "/cards" [] (cards-page))
   (resources "/")
   (not-found "Not Found"))
 
-(def app (wrap-middleware #'routes))
+(defroutes app
+  (wrap-api-middleware api-routes)
+  (wrap-site-middleware site-routes))
