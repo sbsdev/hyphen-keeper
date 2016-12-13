@@ -1,5 +1,6 @@
 (ns hyphen-keeper.handler
-  (:require [compojure
+  (:require [clojure.string :as string]
+            [compojure
              [core :refer [context defroutes DELETE GET POST PUT]]
              [route :refer [not-found resources]]]
             [hiccup.page :refer [html5 include-css include-js]]
@@ -29,8 +30,9 @@
      mount-target
      (include-js "/js/app.js")]))
 
-(defn- word-list [spelling]
-  (response/response (db/read-words spelling)))
+(defn- word-list [spelling search]
+  (let [search-term (if-not (string/blank? search) search ".*")]
+    (response/response (db/read-words spelling search-term))))
 
 (defn- word-add [word hyphenation spelling]
   (db/save-word! word hyphenation spelling)
@@ -44,7 +46,7 @@
 
 (defroutes api-routes
   (context "/api" []
-   (GET "/words" [spelling] (word-list spelling))
+   (GET "/words" [spelling search] (word-list spelling search))
    (POST "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
    (PUT "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
    (DELETE "/words/:word" [word spelling] (word-delete word spelling))))

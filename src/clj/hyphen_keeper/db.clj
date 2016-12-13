@@ -6,13 +6,18 @@
 
 (defqueries "hyphen_keeper/queries.sql" {:connection db})
 
-(defn read-words [spelling]
-  "Return a coll of words for given `spelling`"
-  (-> {:spelling spelling}
-      words))
+(defn read-words
+  "Return a coll of words for given `spelling` and optionally given `search` term"
+  ([spelling]
+   (-> {:spelling spelling}
+       words))
+  ([spelling search]
+   (-> {:spelling spelling :search search}
+       words-search)))
 
-(defn save-word! [word hyphenation spelling]
+(defn save-word!
   "Persist `word` with given `hyphenation` and `spelling`"
+  [word hyphenation spelling]
   (-> {:word word :hyphenation hyphenation :spelling spelling}
       save-word-internal!))
 

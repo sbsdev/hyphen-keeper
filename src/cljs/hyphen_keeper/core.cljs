@@ -8,7 +8,12 @@
 
 (defonce app-state
   (reagent/atom
-   {:hyphenations []}))
+   {:hyphenations []
+    :search ""
+    :spelling 0}))
+
+(def search (reagent/cursor app-state [:search]))
+(def spelling (reagent/cursor app-state [:spelling]))
 
 (defn update-hyphenations! [f & args]
   (apply swap! app-state update-in [:hyphenations] f args))
@@ -20,10 +25,10 @@
   (update-hyphenations! (fn [hs] (vec (remove #(= % h) hs))) h))
 
 (defn load-hyphenation-patterns!
-  [state]
+  [spelling search]
   (ajax/GET "/api/words"
-            :params {:spelling 0}
-            :handler (fn [hyphenations] (swap! state assoc :hyphenations hyphenations))
+            :params {:spelling spelling :search search}
+            :handler (fn [hyphenations] (swap! app-state assoc :hyphenations hyphenations))
             :error-handler (fn [details]
                              (.warn js/console
                                     (str "Failed to refresh hyphenation patterns from server: " details)))
@@ -87,7 +92,7 @@
        [hyphenation-field hyphenation]
        [:button.btn.btn-default
         {:on-click #(when (and @word @hyphenation)
-                      (add-hyphenation-pattern! {:word @word :hyphenation @hyphenation :spelling 0})
+                      (add-hyphenation-pattern! {:word @word :hyphenation @hyphenation :spelling @spelling})
                       (reset! word "")
                       (reset! hyphenation ""))
          :disabled (when (or (string/blank? @word)
@@ -95,15 +100,39 @@
                      "disabled")}
         "Add"]])))
 
+(defn hyphenation-filter [search]
+  [:input.form-control
+   {:type "text"
+    :placeholder "Search"
+    :value @search
+    :on-change (fn [e]
+                 (reset! search (-> e .-target .-value))
+                 (load-hyphenation-patterns! @spelling @search))}])
+
+(defn spelling-filter []
+  [:select {:value @spelling
+            :on-change (fn [e]
+                         (reset! spelling (-> e .-target .-value))
+                         (load-hyphenation-patterns! @spelling @search))}
+   [:option {:value 0} "Old"]
+   [:option {:value 1} "New"]])
+
 (defn hyphenation-list []
   [:div.container
    [:h1 "Hyphenation list"]
-   [:table#hyphenations.table.table-striped
-    [:thead [:tr [:th "Word"] [:th "Hyphenation"]]]
-    [:tbody
-     (for [h (sort-by :word (:hyphenations @app-state))]
-       ^{:key (:word h)} [hyphenation-pattern h])]]
-   [new-hyphenation]])
+   [:div.row
+    [:div.col-md-6
+     [hyphenation-filter search]]
+    [:div.col-md-6
+     [spelling-filter]]]
+    [:div.row
+    [:table#hyphenations.table.table-striped
+     [:thead [:tr [:th "Word"] [:th "Hyphenation"]]]
+     [:tbody
+      (for [h (sort-by :word (:hyphenations @app-state))]
+        ^{:key (:word h)} [hyphenation-pattern h])]]]
+   [:div.row
+    [new-hyphenation]]])
 
 ;; -------------------------
 ;; Views
@@ -134,7 +163,7 @@
   (reagent/render [current-page] (.getElementById js/document "app")))
 
 (defn init! []
-  (load-hyphenation-patterns! app-state)
+  (load-hyphenation-patterns! @spelling @search)
   (accountant/configure-navigation!
     {:nav-handler
      (fn [path]
