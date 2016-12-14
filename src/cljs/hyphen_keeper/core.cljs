@@ -10,7 +10,7 @@
   (reagent/atom
    {:hyphenations []
     :search ""
-    :spelling 0}))
+    :spelling 1}))
 
 (def search (reagent/cursor app-state [:search]))
 (def spelling (reagent/cursor app-state [:spelling]))
