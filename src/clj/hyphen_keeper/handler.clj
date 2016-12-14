@@ -6,6 +6,7 @@
             [hiccup.page :refer [html5 include-css include-js]]
             [hyphen-keeper
              [db :as db]
+             [hyphenate :as hyphenate]
              [middleware :refer [wrap-api-middleware wrap-site-middleware]]]
             [ring.util.response :as response]))
 
@@ -46,6 +47,7 @@
 
 (defroutes api-routes
   (context "/api" []
+   (GET "/hyphenate" [spelling word] (hyphenate/hyphenate spelling word))
    (GET "/words" [spelling search] (word-list spelling search))
    (POST "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
    (PUT "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
