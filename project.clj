@@ -16,6 +16,7 @@
                  [hiccup "1.0.5"]
                  [yesql "0.5.3"]
                  [mysql/mysql-connector-java "5.1.6"]
+                 [org.daisy.bindings/jhyphen "1.0.0"]
                  [org.clojure/clojurescript "1.9.229" :scope "provided"]
                  [reagent "0.6.0"]
                  [reagent-utils "0.2.0"]
