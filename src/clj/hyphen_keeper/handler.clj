@@ -32,8 +32,10 @@
      (include-js "/js/app.js")]))
 
 (defn- word-list [spelling search]
-  (let [search-term (if-not (string/blank? search) search ".*")]
-    (response/response (db/read-words spelling search-term))))
+  (let [resp (if (string/blank? search)
+               (db/read-words spelling)
+               (db/search-words spelling search))]
+    (response/response resp)))
 
 (defn- word-add [word hyphenation spelling]
   (db/save-word! word hyphenation spelling)
