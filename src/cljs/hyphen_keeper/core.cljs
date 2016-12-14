@@ -9,11 +9,15 @@
 (defonce app-state
   (reagent/atom
    {:hyphenations []
-    :search ""
-    :spelling 1}))
+    :spelling 1
+    :word ""
+    :hyphenation ""
+    :official-hyphenation ""}))
 
-(def search (reagent/cursor app-state [:search]))
 (def spelling (reagent/cursor app-state [:spelling]))
+(def word (reagent/cursor app-state [:word]))
+(def hyphenation (reagent/cursor app-state [:hyphenation]))
+(def official-hyphenation (reagent/cursor app-state [:official-hyphenation]))
 
 (defn update-hyphenations! [f & args]
   (apply swap! app-state update-in [:hyphenations] f args))
@@ -25,9 +29,9 @@
   (update-hyphenations! (fn [hs] (vec (remove #(= % h) hs))) h))
 
 (defn load-hyphenation-patterns!
-  [spelling search]
+  [spelling word]
   (ajax/GET "/api/words"
-            :params {:spelling spelling :search search}
+            :params {:spelling spelling :search word}
             :handler (fn [hyphenations] (swap! app-state assoc :hyphenations hyphenations))
             :error-handler (fn [details]
                              (.warn js/console
@@ -55,6 +59,17 @@
                                        (str "Failed to remove hyphenation pattern: " details)))
                :format :json))
 
+(defn lookup-hyphenation-pattern!
+  [spelling word]
+  (ajax/GET "/api/hyphenate"
+            :params {:word word :spelling spelling}
+            :handler (fn [hyphenated] (do
+                                        (swap! app-state assoc :official-hyphenation hyphenated)
+                                        (swap! app-state assoc :hyphenation hyphenated)))
+            :error-handler (fn [details]
+                             (.warn js/console
+                                    (str "Failed to lookup hyphenation patterns for word: " details)))))
+
 (defn hyphenation-pattern [pattern]
   [:tr
    [:td (:word pattern)]
@@ -64,86 +79,78 @@
      {:on-click #(remove-hyphenation-pattern! pattern)}
      [:span.glyphicon.glyphicon-remove {:aria-hidden true}] " Delete"]]])
 
-(defn word-field [val]
+(defn word-field []
   [:div.form-group
    [:label.sr-only {:for "wordInput"} "Word"]
    [:input.form-control
     {:id "wordInput"
      :type "text"
      :placeholder "Word"
-     :value @val
-     :on-change #(reset! val (-> % .-target .-value))}]])
+     :value @word
+     :on-change (fn [e]
+                  (reset! word (-> e .-target .-value))
+                  (load-hyphenation-patterns! @spelling @word))
+     :on-blur #(lookup-hyphenation-pattern! @spelling @word)}]])
 
 (defn- hyphenation-valid? [s]
   (and (not (string/blank? s))
        (re-find #"\S-\S" s)))
 
-(defn hyphenation-field [val]
+(defn hyphenation-field []
   [:div
-   {:class (if (or (string/blank? @val)
-                   (hyphenation-valid? @val))
+   {:class (if (or (string/blank? @hyphenation)
+                   (hyphenation-valid? @hyphenation))
              "form-group" "form-group has-error")}
    [:label.sr-only {:for "hyphenationInput"} "Hyphenation"]
    [:input.form-control
     {:type "text"
      :placeholder "Hyphenation"
-     :value @val
-     :on-change #(reset! val (-> % .-target .-value))}]])
+     :value @hyphenation
+     :on-change #(reset! hyphenation (-> % .-target .-value))}]
+   #_[:p.help-block "If the hyphenation is as you would expect it then the problem lies with the liblouis tables. Please contact Christian or Mischa."]])
 
-(defn- hyphenation-add-button
-  [word hyphenation]
+(defn- hyphenation-add-button []
   [:button.btn.btn-default
    {:on-click #(when (and @word (hyphenation-valid? @hyphenation))
                  (add-hyphenation-pattern! {:word @word :hyphenation @hyphenation :spelling @spelling})
                  (reset! word "")
                  (reset! hyphenation ""))
     :disabled (when (or (string/blank? @word)
-                        (not (hyphenation-valid? @hyphenation)))
+                        (not (hyphenation-valid? @hyphenation))
+                        (= @hyphenation @official-hyphenation))
                 "disabled")}
    "Add"])
 
-(defn new-hyphenation []
-  (let [word (reagent/atom "")
-        hyphenation (reagent/atom "")]
-    (fn []
-      [:div.form-inline
-       [word-field word]
-       [hyphenation-field hyphenation]
-       [hyphenation-add-button word hyphenation]])))
-
-(defn hyphenation-filter [search]
-  [:input.form-control
-   {:type "text"
-    :placeholder "Search"
-    :value @search
-    :on-change (fn [e]
-                 (reset! search (-> e .-target .-value))
-                 (load-hyphenation-patterns! @spelling @search))}])
-
 (defn spelling-filter []
-  [:select {:value @spelling
-            :on-change (fn [e]
-                         (reset! spelling (-> e .-target .-value))
-                         (load-hyphenation-patterns! @spelling @search))}
-   [:option {:value 0} "Old Spelling"]
-   [:option {:value 1} "New Spelling"]])
+  [:div.form-group
+   [:select {:value @spelling
+             :on-change (fn [e]
+                          (reset! spelling (-> e .-target .-value))
+                          (load-hyphenation-patterns! @spelling @word)
+                          (lookup-hyphenation-pattern! @spelling @word))}
+    [:option {:value 0} "Old Spelling"]
+    [:option {:value 1} "New Spelling"]]])
+
+(defn new-hyphenation []
+  [:div.form
+   [spelling-filter]
+   [word-field]
+   [hyphenation-field]
+   [hyphenation-add-button]])
 
 (defn hyphenation-list []
   [:div.container
-   [:h1 "Hyphenation list"]
+   [:h1 "Hyphenation"]
    [:div.row
     [:div.col-md-6
-     [hyphenation-filter search]]
-    [:div.col-md-6
-     [spelling-filter]]]
-    [:div.row
+     [new-hyphenation]]]
+   [:h1 "Similar words"]
+   [:div.row
     [:table#hyphenations.table.table-striped
      [:thead [:tr [:th "Word"] [:th "Hyphenation"]]]
      [:tbody
       (for [h (sort-by :word (:hyphenations @app-state))]
-        ^{:key (:word h)} [hyphenation-pattern h])]]]
-   [:div.row
-    [new-hyphenation]]])
+        ^{:key (:word h)} [hyphenation-pattern h])]]]])
 
 ;; -------------------------
 ;; Views
@@ -174,7 +181,7 @@
   (reagent/render [current-page] (.getElementById js/document "app")))
 
 (defn init! []
-  (load-hyphenation-patterns! @spelling @search)
+  (load-hyphenation-patterns! @spelling @word)
   (accountant/configure-navigation!
     {:nav-handler
      (fn [path]
