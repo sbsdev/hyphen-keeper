@@ -74,14 +74,33 @@
      :value @val
      :on-change #(reset! val (-> % .-target .-value))}]])
 
+(defn- hyphenation-valid? [s]
+  (and (not (string/blank? s))
+       (re-find #"\S-\S" s)))
+
 (defn hyphenation-field [val]
-  [:div.form-group
+  [:div
+   {:class (if (or (string/blank? @val)
+                   (hyphenation-valid? @val))
+             "form-group" "form-group has-error")}
    [:label.sr-only {:for "hyphenationInput"} "Hyphenation"]
    [:input.form-control
     {:type "text"
      :placeholder "Hyphenation"
      :value @val
      :on-change #(reset! val (-> % .-target .-value))}]])
+
+(defn- hyphenation-add-button
+  [word hyphenation]
+  [:button.btn.btn-default
+   {:on-click #(when (and @word (hyphenation-valid? @hyphenation))
+                 (add-hyphenation-pattern! {:word @word :hyphenation @hyphenation :spelling @spelling})
+                 (reset! word "")
+                 (reset! hyphenation ""))
+    :disabled (when (or (string/blank? @word)
+                        (not (hyphenation-valid? @hyphenation)))
+                "disabled")}
+   "Add"])
 
 (defn new-hyphenation []
   (let [word (reagent/atom "")
@@ -90,15 +109,7 @@
       [:div.form-inline
        [word-field word]
        [hyphenation-field hyphenation]
-       [:button.btn.btn-default
-        {:on-click #(when (and @word @hyphenation)
-                      (add-hyphenation-pattern! {:word @word :hyphenation @hyphenation :spelling @spelling})
-                      (reset! word "")
-                      (reset! hyphenation ""))
-         :disabled (when (or (string/blank? @word)
-                             (string/blank? @hyphenation))
-                     "disabled")}
-        "Add"]])))
+       [hyphenation-add-button word hyphenation]])))
 
 (defn hyphenation-filter [search]
   [:input.form-control
