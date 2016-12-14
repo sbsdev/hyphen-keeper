@@ -114,8 +114,8 @@
             :on-change (fn [e]
                          (reset! spelling (-> e .-target .-value))
                          (load-hyphenation-patterns! @spelling @search))}
-   [:option {:value 0} "Old"]
-   [:option {:value 1} "New"]])
+   [:option {:value 0} "Old Spelling"]
+   [:option {:value 1} "New Spelling"]])
 
 (defn hyphenation-list []
   [:div.container
