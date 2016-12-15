@@ -110,8 +110,7 @@
       {:type "text"
        :placeholder label
        :value @hyphenation
-       :on-change #(reset! hyphenation (-> % .-target .-value))}]
-     #_[:p.help-block "If the hyphenation is as you would expect it then the problem lies with the liblouis tables. Please contact Christian or Mischa."]]))
+       :on-change #(reset! hyphenation (-> % .-target .-value))}]]))
 
 (defn- hyphenation-add-button []
   [:button.btn.btn-default
