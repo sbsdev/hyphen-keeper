@@ -75,9 +75,12 @@
    [:td (:word pattern)]
    [:td (:hyphenation pattern)]
    [:td
-    [:button.btn.btn-default
-     {:on-click #(remove-hyphenation-pattern! pattern)}
-     [:span.glyphicon.glyphicon-remove {:aria-hidden true}] " Delete"]]])
+    [:div.btn-group
+     [:button.btn.btn-default
+      [:span.glyphicon.glyphicon-edit {:aria-hidden true}] " Edit"]
+     [:button.btn.btn-default
+      {:on-click #(remove-hyphenation-pattern! pattern)}
+      [:span.glyphicon.glyphicon-trash {:aria-hidden true}] " Delete"]]]])
 
 (defn word-field []
   [:div.form-group
