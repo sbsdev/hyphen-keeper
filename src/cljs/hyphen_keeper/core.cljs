@@ -97,7 +97,8 @@
 
 (defn- hyphenation-valid? [s]
   (and (not (string/blank? s))
-       (re-find #"\S-\S" s)))
+       (string/includes? s "-")
+       (re-matches #"[a-z\xDF-\xFF-]+" s)))
 
 (defn hyphenation-field []
   (let [label "Corrected Hyphenation"
