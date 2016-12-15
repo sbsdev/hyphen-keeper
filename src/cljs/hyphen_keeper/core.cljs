@@ -84,7 +84,7 @@
 
 (defn word-field []
   [:div.form-group
-   [:label.sr-only {:for "wordInput"} "Word"]
+   [:label {:for "wordInput"} "Word"]
    [:input.form-control
     {:id "wordInput"
      :type "text"
@@ -104,7 +104,7 @@
    {:class (if (or (string/blank? @hyphenation)
                    (hyphenation-valid? @hyphenation))
              "form-group" "form-group has-error")}
-   [:label.sr-only {:for "hyphenationInput"} "Hyphenation"]
+   [:label {:for "hyphenationInput"} "Corrected Hyphenation"]
    [:input.form-control
     {:type "text"
      :placeholder "Hyphenation"
