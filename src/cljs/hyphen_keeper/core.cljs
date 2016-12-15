@@ -91,7 +91,7 @@
      :placeholder "Word"
      :value @word
      :on-change (fn [e]
-                  (reset! word (-> e .-target .-value))
+                  (reset! word (-> e .-target .-value string/lower-case))
                   (load-hyphenation-patterns! @spelling @word))
      :on-blur #(lookup-hyphenation-pattern! @spelling @word)}]])
 
@@ -110,7 +110,7 @@
       {:type "text"
        :placeholder label
        :value @hyphenation
-       :on-change #(reset! hyphenation (-> % .-target .-value))}]]))
+       :on-change #(reset! hyphenation (-> % .-target .-value string/lower-case))}]]))
 
 (defn- hyphenation-add-button []
   [:button.btn.btn-default
