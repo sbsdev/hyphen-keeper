@@ -12,12 +12,12 @@
     :spelling 1
     :word ""
     :hyphenation ""
-    :official-hyphenation ""}))
+    :suggested-hyphenation ""}))
 
 (def spelling (reagent/cursor app-state [:spelling]))
 (def word (reagent/cursor app-state [:word]))
 (def hyphenation (reagent/cursor app-state [:hyphenation]))
-(def official-hyphenation (reagent/cursor app-state [:official-hyphenation]))
+(def suggested-hyphenation (reagent/cursor app-state [:suggested-hyphenation]))
 
 (defn update-hyphenations! [f & args]
   (apply swap! app-state update-in [:hyphenations] f args))
@@ -64,7 +64,7 @@
   (ajax/GET "/api/hyphenate"
             :params {:word word :spelling spelling}
             :handler (fn [hyphenated] (do
-                                        (swap! app-state assoc :official-hyphenation hyphenated)
+                                        (swap! app-state assoc :suggested-hyphenation hyphenated)
                                         (swap! app-state assoc :hyphenation hyphenated)))
             :error-handler (fn [details]
                              (.warn js/console
@@ -120,7 +120,7 @@
                  (reset! hyphenation ""))
     :disabled (when (or (string/blank? @word)
                         (not (hyphenation-valid? @hyphenation))
-                        (= @hyphenation @official-hyphenation))
+                        (= @hyphenation @suggested-hyphenation))
                 "disabled")}
    "Add"])
 
@@ -134,10 +134,23 @@
     [:option {:value 0} "Old Spelling"]
     [:option {:value 1} "New Spelling"]]])
 
+(defn suggested-hyphenation-field []
+  (let [id "suggestedHyphenation"
+        label "Suggested Hyphenation"]
+    [:div.form-group
+     [:label {:for id} label]
+     [:input.form-control
+      {:id id
+       :type "text"
+       :placeholder label
+       :disabled "disabled"
+       :value @suggested-hyphenation}]]))
+
 (defn new-hyphenation []
   [:div.form
    [spelling-filter]
    [word-field]
+   [suggested-hyphenation-field]
    [hyphenation-field]
    [hyphenation-add-button]])
 
