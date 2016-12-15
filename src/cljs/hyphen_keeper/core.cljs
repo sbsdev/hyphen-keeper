@@ -100,17 +100,18 @@
        (re-find #"\S-\S" s)))
 
 (defn hyphenation-field []
-  [:div
-   {:class (if (or (string/blank? @hyphenation)
-                   (hyphenation-valid? @hyphenation))
-             "form-group" "form-group has-error")}
-   [:label {:for "hyphenationInput"} "Corrected Hyphenation"]
-   [:input.form-control
-    {:type "text"
-     :placeholder "Hyphenation"
-     :value @hyphenation
-     :on-change #(reset! hyphenation (-> % .-target .-value))}]
-   #_[:p.help-block "If the hyphenation is as you would expect it then the problem lies with the liblouis tables. Please contact Christian or Mischa."]])
+  (let [label "Corrected Hyphenation"
+        valid? (or (string/blank? @hyphenation) (hyphenation-valid? @hyphenation))
+        klass (if valid? "form-group" "form-group has-error")]
+    [:div
+     {:class klass}
+     [:label {:for "hyphenationInput"} label]
+     [:input.form-control
+      {:type "text"
+       :placeholder label
+       :value @hyphenation
+       :on-change #(reset! hyphenation (-> % .-target .-value))}]
+     #_[:p.help-block "If the hyphenation is as you would expect it then the problem lies with the liblouis tables. Please contact Christian or Mischa."]]))
 
 (defn- hyphenation-add-button []
   [:button.btn.btn-default
