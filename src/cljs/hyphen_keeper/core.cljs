@@ -39,11 +39,18 @@
             :response-format :json
             :keywords? true))
 
+(defn reset-all! []
+  (reset! feedback {:message "Word successfully added" :kind :success})
+  (reset! word "")
+  (reset! hyphenation "")
+  (reset! suggested-hyphenation "")
+  (load-hyphenation-patterns! @spelling @word))
+
 (defn add-hyphenation-pattern!
   [pattern]
   (ajax/POST "/api/words"
              :params pattern
-             :handler (fn [] (add-hyphenation! pattern))
+             :handler (fn [] (reset-all!))
              :error-handler (fn [details]
                               (.warn js/console
                                      (str "Failed to add hyphenation pattern: " details)))
@@ -114,16 +121,15 @@
        :on-change #(reset! hyphenation (-> % .-target .-value string/lower-case))}]]))
 
 (defn- hyphenation-add-button []
-  [:button.btn.btn-default
-   {:on-click #(when (and @word (hyphenation-valid? @hyphenation))
-                 (add-hyphenation-pattern! {:word @word :hyphenation @hyphenation :spelling @spelling})
-                 (reset! word "")
-                 (reset! hyphenation ""))
-    :disabled (when (or (string/blank? @word)
-                        (not (hyphenation-valid? @hyphenation))
-                        (= @hyphenation @suggested-hyphenation))
-                "disabled")}
-   "Add"])
+  [:div.form-group
+   [:button.btn.btn-default
+    {:on-click #(when (and @word (hyphenation-valid? @hyphenation))
+                  (add-hyphenation-pattern! {:word @word :hyphenation @hyphenation :spelling @spelling}))
+     :disabled (when (or (string/blank? @word)
+                         (not (hyphenation-valid? @hyphenation))
+                         (= @hyphenation @suggested-hyphenation))
+                 "disabled")}
+    "Add"]])
 
 (defn spelling-filter []
   [:div.form-group
