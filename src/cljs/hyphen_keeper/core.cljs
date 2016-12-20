@@ -77,10 +77,10 @@
                              (.warn js/console
                                     (str "Failed to lookup hyphenation patterns for word: " details)))))
 
-(defn hyphenation-pattern [pattern]
+(defn hyphenation-pattern [{:keys [word hyphenation] :as pattern}]
   [:tr
-   [:td (:word pattern)]
-   [:td (:hyphenation pattern)]
+   [:td word]
+   [:td hyphenation]
    [:td
     [:div.btn-group
      [:button.btn.btn-default
