@@ -8,7 +8,7 @@
 
 (defonce app-state
   (reagent/atom
-   {:hyphenations []
+   {:hyphenations {}
     :spelling 1
     :word ""
     :hyphenation ""
@@ -22,17 +22,17 @@
 (defn update-hyphenations! [f & args]
   (apply swap! app-state update-in [:hyphenations] f args))
 
-(defn add-hyphenation! [h]
-  (update-hyphenations! conj h))
-
-(defn remove-hyphenation! [h]
-  (update-hyphenations! (fn [hs] (vec (remove #(= % h) hs))) h))
+(defn remove-hyphenation! [{:keys [word]}]
+  (update-hyphenations! dissoc word))
 
 (defn load-hyphenation-patterns!
   [spelling word]
   (ajax/GET "/api/words"
             :params {:spelling spelling :search word}
-            :handler (fn [hyphenations] (swap! app-state assoc :hyphenations hyphenations))
+            :handler (fn [hyphenations] (swap! app-state assoc :hyphenations
+                                               (into (sorted-map)
+                                                     (map (fn [{:keys [word] :as pattern}] [word pattern])
+                                                          hyphenations))))
             :error-handler (fn [details]
                              (.warn js/console
                                     (str "Failed to refresh hyphenation patterns from server: " details)))
@@ -166,8 +166,8 @@
     [:table#hyphenations.table.table-striped
      [:thead [:tr [:th "Word"] [:th "Hyphenation"]]]
      [:tbody
-      (for [h (sort-by :word (:hyphenations @app-state))]
-        ^{:key (:word h)} [hyphenation-pattern h])]]]])
+      (for [[word pattern] (:hyphenations @app-state)]
+        ^{:key word} [hyphenation-pattern pattern])]]]])
 
 ;; -------------------------
 ;; Views
