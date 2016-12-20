@@ -12,12 +12,14 @@
     :spelling 1
     :word ""
     :hyphenation ""
-    :suggested-hyphenation ""}))
+    :suggested-hyphenation ""
+    :feedback {:message "" :kind :none}}))
 
 (def spelling (reagent/cursor app-state [:spelling]))
 (def word (reagent/cursor app-state [:word]))
 (def hyphenation (reagent/cursor app-state [:hyphenation]))
 (def suggested-hyphenation (reagent/cursor app-state [:suggested-hyphenation]))
+(def feedback (reagent/cursor app-state [:feedback]))
 
 (defn update-hyphenations! [f & args]
   (apply swap! app-state update-in [:hyphenations] f args))
@@ -39,8 +41,13 @@
             :response-format :json
             :keywords? true))
 
+(defn set-feedback! [message kind]
+  (reset! feedback {:message message :kind kind})
+  (.setTimeout js/window #(reset! feedback {:message "" :kind :none}) 2000)
+  )
+
 (defn reset-all! []
-  (reset! feedback {:message "Word successfully added" :kind :success})
+  (set-feedback! "Word successfully added" :success)
   (reset! word "")
   (reset! hyphenation "")
   (reset! suggested-hyphenation "")
@@ -153,13 +160,22 @@
        :disabled "disabled"
        :value @suggested-hyphenation}]]))
 
+(defn feedback-alert []
+  (let [msg (:message @feedback)
+        klass (if-let [kind (:kind @feedback)]
+                (str "alert alert-" (name kind))
+                "alert")]
+    [:div {:class klass :role "alert"} msg]))
+
 (defn new-hyphenation []
   [:div.form
    [spelling-filter]
    [word-field]
    [suggested-hyphenation-field]
    [hyphenation-field]
-   [hyphenation-add-button]])
+   [hyphenation-add-button]
+   (when (not= :none (:kind @feedback))
+     [feedback-alert])])
 
 (defn hyphenation-list []
   [:div.container
