@@ -3,7 +3,13 @@
 SELECT word, hyphenation, spelling
 FROM words
 WHERE spelling = :spelling
-LIMIT 100
+
+-- name: words-paginated
+-- Get the words for given spelling
+SELECT word, hyphenation, spelling
+FROM words
+WHERE spelling = :spelling
+LIMIT :offset, :max_rows
 
 -- name: words-search
 -- Get the words for given spelling that match the given search term

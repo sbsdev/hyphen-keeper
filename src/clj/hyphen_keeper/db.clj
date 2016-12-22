@@ -9,8 +9,13 @@
 (defn read-words
   "Return a coll of words for given `spelling`"
   [spelling]
-  (-> {:spelling spelling}
-      words))
+  (-> {:spelling spelling} words))
+
+(defn read-words-paginated
+  "Return a coll of words for given `spelling` using `max-rows` and `offset` for pagination"
+  [spelling offset max-rows]
+  (-> {:spelling spelling :max_rows max-rows :offset offset}
+      words-paginated))
 
 (defn search-words
   "Return a coll of words for given `spelling` and given `search` term"

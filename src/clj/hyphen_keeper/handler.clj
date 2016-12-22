@@ -31,9 +31,9 @@
      mount-target
      (include-js "/js/app.js")]))
 
-(defn- word-list [spelling search]
+(defn- word-list [spelling search offset max-rows]
   (let [resp (if (string/blank? search)
-               (db/read-words spelling)
+               (db/read-words-paginated spelling (or offset 0) (or max-rows 100))
                (db/search-words spelling search))]
     (response/response resp)))
 
@@ -50,7 +50,7 @@
 (defroutes api-routes
   (context "/api" []
    (GET "/hyphenate" [spelling word] (hyphenate/hyphenate spelling word))
-   (GET "/words" [spelling search] (word-list spelling search))
+   (GET "/words" [spelling search offset max-rows] (word-list spelling search offset max-rows))
    (POST "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
    (PUT "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
    (DELETE "/words/:word" [word spelling] (word-delete word spelling))))
