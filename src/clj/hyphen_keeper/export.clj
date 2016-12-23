@@ -47,6 +47,10 @@
       (.write w word)
       (.newLine w))))
 
+;; I tried to run this in parallel (simply by using (dorun (pmap))
+;; instead of (doseq)) but as it turns out the jobs are so uneven,
+;; i.e. the first one is very small compared to the second one, we end
+;; up waiting the same time.
 (defn export []
   (let [program (.getAbsolutePath (io/file (io/resource "perl/substrings.pl")))]
     (doseq [[spelling [white-list dictionary original]] dictionaries]
