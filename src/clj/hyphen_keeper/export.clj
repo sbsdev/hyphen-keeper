@@ -1,5 +1,6 @@
 (ns hyphen-keeper.export
-  (:require [clojure.java
+  (:require [clojure.core.async :as async]
+            [clojure.java
              [io :as io]
              [shell :refer [sh]]]
             [clojure.string :as string]
@@ -63,3 +64,24 @@
        (write-file white-list original))
       (sh program white-list dictionary))))
 
+(defn- exporter
+  "Attach an export listener to the given channel"
+  [in]
+  (async/go-loop []
+    (when-let [_ (async/<! in)]
+      (export*)
+      (recur)))
+  in)
+
+;; we want to debounce, i.e. rate limit the amount of exports (see
+;; https://en.wikipedia.org/wiki/Switch#Contact_bounce.) In
+;; other words do not initiate another export while you are still
+;; doing one. For that we simply use a dropping buffer of size one
+;; which makes sure that we remember any request that came in while we
+;; were blocked doing the export.
+(def export-chan (exporter (async/chan (async/dropping-buffer 1))))
+
+(defn export
+  "Like [export*] but with debouncing"
+  []
+  (async/>!! export-chan true))
