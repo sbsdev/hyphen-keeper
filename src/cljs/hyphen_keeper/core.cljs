@@ -103,6 +103,7 @@
     {:id "wordInput"
      :type "text"
      :placeholder "Word"
+     :auto-focus true
      :value @word
      :on-change (fn [e]
                   (reset! word (-> e .-target .-value string/lower-case))
