@@ -11,7 +11,7 @@
                  [ring-server "0.4.0"]
                  [ring "1.5.0"]
                  [ring/ring-defaults "0.2.1"]
-                 [ring/ring-json "0.5.0-beta1"]
+                 [ring/ring-json "0.4.0"]
                  [compojure "1.5.1"]
                  [hiccup "1.0.5"]
                  [yesql "0.5.3"]
