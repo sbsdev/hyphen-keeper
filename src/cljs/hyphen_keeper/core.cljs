@@ -178,12 +178,25 @@
    (when (not= :none (:kind @feedback))
      [feedback-alert])])
 
+(defn- button [label href disabled]
+  [:a.btn.btn-default {:href href :target "_blank" :disabled disabled} label])
+
+(defn hyphenation-lookup [word]
+  (let [disabled (when (string/blank? word) "disabled")]
+    [:div.row
+     [:div.btn-group {:role "group" :aria-label "Buttons for hyphenation lookup"}
+      (button "Duden" (str "http://www.duden.de/suchen/dudenonline/" word) disabled)
+      (button "TU Chemnitz" (str "http://dict.tu-chemnitz.de/?query=" word) disabled)
+      (button "PONS" (str "http://de.pons.eu/dict/search/results/?l=dede&q=" word) disabled)]]))
+
 (defn hyphenation-list []
   [:div.container
    [:h1 "Hyphenation"]
    [:div.row
     [:div.col-md-6
      [new-hyphenation]]]
+   [:h1 "Lookup"]
+   [hyphenation-lookup @word]
    [:h1 "Similar words"]
    [:div.row
     [:table#hyphenations.table.table-striped
