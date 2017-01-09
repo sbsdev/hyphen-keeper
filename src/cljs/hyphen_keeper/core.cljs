@@ -84,17 +84,58 @@
                              (.warn js/console
                                     (str "Failed to lookup hyphenation patterns for word: " details)))))
 
-(defn hyphenation-pattern [{:keys [word hyphenation] :as pattern}]
+(defn hyphenation-pattern [{:keys [word hyphenation]}]
   [:tr
    [:td word]
-   [:td hyphenation]
-   [:td
-    [:div.btn-group
-     [:button.btn.btn-default
-      [:span.glyphicon.glyphicon-edit {:aria-hidden true}] " Edit"]
-     [:button.btn.btn-default
-      {:on-click #(remove-hyphenation-pattern! pattern)}
-      [:span.glyphicon.glyphicon-trash {:aria-hidden true}] " Delete"]]]])
+   [:td hyphenation]])
+
+(defn- hyphenation-valid? [s]
+  (and (not (string/blank? s))
+       (string/includes? s "-")
+       (re-matches #"[a-z\xDF-\xFF-]+" s)))
+
+(defn hyphenation-pattern-editable-item [{:keys [hyphenation]}]
+  (let [editing (reagent/atom false)
+        new-hyphenation (reagent/atom hyphenation)]
+    (fn [{:keys [word hyphenation] :as pattern}]
+      (if-not @editing
+        [:tr
+         [:td word]
+         [:td hyphenation]
+         [:td
+          [:div.btn-group
+           [:button.btn.btn-default
+            {:on-click #(reset! editing true)}
+            [:span.glyphicon.glyphicon-edit {:aria-hidden true}] " Edit"]
+           [:button.btn.btn-default
+            {:on-click #(remove-hyphenation-pattern! pattern)}
+            [:span.glyphicon.glyphicon-trash {:aria-hidden true}] " Delete"]]]]
+        [:tr
+         [:td word]
+         [:td
+          [:input.form-control
+           {:type "text"
+            :auto-focus true
+            :on-change #(reset! new-hyphenation (-> % .-target .-value))
+            :on-key-down #(case (.-which %)
+                            27 (do
+                                 (reset! new-hyphenation hyphenation)
+                                 (reset! editing false))
+                            nil)
+            :value @new-hyphenation}]]
+         [:td
+          [:div.btn-group
+           [:button.btn.btn-default
+            {:on-click #(do (when (hyphenation-valid? @new-hyphenation)
+                              (add-hyphenation-pattern!
+                               (assoc pattern :hyphenation @new-hyphenation)))
+                            (reset! editing false))}
+            [:span.glyphicon.glyphicon-ok {:aria-hidden true}] " Save"]
+           [:button.btn.btn-default
+            {:on-click #(do
+                          (reset! new-hyphenation hyphenation)
+                          (reset! editing false))}
+            [:span.glyphicon.glyphicon-remove {:aria-hidden true}] " Cancel"]]]]))))
 
 (defn word-field []
   [:div.form-group
@@ -109,11 +150,6 @@
                   (reset! word (-> e .-target .-value string/lower-case))
                   (load-hyphenation-patterns! @spelling @word))
      :on-blur #(lookup-hyphenation-pattern! @spelling @word)}]])
-
-(defn- hyphenation-valid? [s]
-  (and (not (string/blank? s))
-       (string/includes? s "-")
-       (re-matches #"[a-z\xDF-\xFF-]+" s)))
 
 (defn hyphenation-field []
   (let [label "Corrected Hyphenation"
@@ -148,6 +184,15 @@
                           (lookup-hyphenation-pattern! @spelling @word))}
     [:option {:value 0} "Old Spelling"]
     [:option {:value 1} "New Spelling"]]])
+
+(defn hyphenation-filter [search]
+  [:input.form-control
+   {:type "text"
+    :placeholder "Search"
+    :value @search
+    :on-change (fn [e]
+                 (reset! search (-> e .-target .-value))
+                 (load-hyphenation-patterns! @spelling @search))}])
 
 (defn suggested-hyphenation-field []
   (let [id "suggestedHyphenation"
@@ -189,15 +234,39 @@
       (button "TU Chemnitz" (str "http://dict.tu-chemnitz.de/?query=" word) disabled)
       (button "PONS" (str "http://de.pons.eu/dict/search/results/?l=dede&q=" word) disabled)]]))
 
-(defn hyphenation-list []
+(defn- navbar [active]
+  [:nav.navbar.navbar-default
+   [:div.container-fluid
+    [:div.navbar-header
+     [:button.navbar-toggle.collapsed
+      {:type "button"
+       :data-toggle "collapse"
+       :data-target "#navbar-collapse"
+       :aria-expanded "false"}
+      [:span.sr-only "Toggle navigation"]
+      [:span.icon-bar]
+      [:span.icon-bar]
+      [:span.icon-bar]]
+     [:a.navbar-brand {:href "/"} "Hyphenation"]]
+    [:div#navbar-collapse.navbar-collapse.collapse
+     [:ul.nav.navbar-nav.navbar-right
+      [:li
+       (if (= active :edit) {:class "active"} {})
+       [:a {:href "/edit"} "Edit"]]]]]])
+
+;; -------------------------
+;; Views
+
+(defn home-page []
   [:div.container
-   [:h1 "Hyphenation"]
+   [navbar :insert]
+   [:h2 "Insert Hyphenations"]
    [:div.row
     [:div.col-md-6
      [new-hyphenation]]]
-   [:h1 "Lookup"]
+   [:h2 "Lookup"]
    [hyphenation-lookup @word]
-   [:h1 "Similar words"]
+   [:h2 "Similar words"]
    [:div.row
     [:table#hyphenations.table.table-striped
      [:thead [:tr [:th "Word"] [:th "Hyphenation"]]]
@@ -205,15 +274,21 @@
       (for [[word pattern] (:hyphenations @app-state)]
         ^{:key word} [hyphenation-pattern pattern])]]]])
 
-;; -------------------------
-;; Views
-
-(defn home-page []
-  [hyphenation-list])
-
-(defn about-page []
-  [:div [:h2 "About hyphen-keeper"]
-   [:div [:a {:href "/"} "go to the home page"]]])
+(defn edit-page []
+  [:div.container
+   [navbar :edit]
+   [:h2 "Edit Hyphenations"]
+   [:div.row
+    [:div.col-md-6
+     [spelling-filter]]
+    [:div.col-md-6
+     [hyphenation-filter word]]]
+   [:div.row
+    [:table#hyphenations.table.table-striped
+     [:thead [:tr [:th "Word"] [:th "Hyphenation"] [:th ""]]]
+     [:tbody
+      (for [[word pattern] (:hyphenations @app-state)]
+        ^{:key word} [hyphenation-pattern-editable-item pattern])]]]])
 
 (defn current-page []
   [:div [(session/get :current-page)]])
@@ -224,8 +299,8 @@
 (secretary/defroute "/" []
   (session/put! :current-page #'home-page))
 
-(secretary/defroute "/about" []
-  (session/put! :current-page #'about-page))
+(secretary/defroute "/edit" []
+  (session/put! :current-page #'edit-page))
 
 ;; -------------------------
 ;; Initialize app
