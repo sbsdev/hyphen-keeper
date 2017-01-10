@@ -70,7 +70,7 @@
                              (.warn js/console
                                     (str "Failed to lookup hyphenation patterns for word: " details)))))
 
-(defn hyphenation-pattern [{:keys [word hyphenation]}]
+(defn hyphenation-pattern-ui [{:keys [word hyphenation]}]
   [:tr
    [:td word]
    [:td hyphenation]])
@@ -137,7 +137,7 @@
                   (load-hyphenation-patterns! @spelling @word))
      :on-blur #(lookup-hyphenation-pattern! @spelling @word)}]])
 
-(defn hyphenation-field []
+(defn hyphenation-ui []
   (let [label "Corrected Hyphenation"
         valid? (or (string/blank? @hyphenation) (hyphenation-valid? @hyphenation))
         klass (if valid? "form-group" "form-group has-error")]
@@ -150,7 +150,7 @@
        :value @hyphenation
        :on-change #(reset! hyphenation (-> % .-target .-value string/lower-case))}]]))
 
-(defn- hyphenation-add-button []
+(defn- hyphenation-add-ui []
   [:div.form-group
    [:button.btn.btn-default
     {:on-click #(when (and @word (hyphenation-valid? @hyphenation))
@@ -161,7 +161,7 @@
                  "disabled")}
     "Add"]])
 
-(defn spelling-filter []
+(defn spelling-ui []
   [:div.form-group
    [:select {:value @spelling
              :on-change (fn [e]
@@ -171,7 +171,7 @@
     [:option {:value 0} "Old Spelling"]
     [:option {:value 1} "New Spelling"]]])
 
-(defn hyphenation-filter [search]
+(defn search-ui [search]
   [:input.form-control
    {:type "text"
     :placeholder "Search"
@@ -180,7 +180,7 @@
                  (reset! search (-> e .-target .-value))
                  (load-hyphenation-patterns! @spelling @search))}])
 
-(defn suggested-hyphenation-field []
+(defn suggested-hyphenation-ui []
   (let [id "suggestedHyphenation"
         label "Suggested Hyphenation"]
     [:div.form-group
@@ -203,7 +203,7 @@
       (button "TU Chemnitz" (str "http://dict.tu-chemnitz.de/?query=" word) disabled)
       (button "PONS" (str "http://de.pons.eu/dict/search/results/?l=dede&q=" word) disabled)]]))
 
-(defn- navbar [active]
+(defn- navbar-ui [active]
   [:nav.navbar.navbar-default
    [:div.container-fluid
     [:div.navbar-header
@@ -226,9 +226,9 @@
 ;; -------------------------
 ;; Views
 
-(defn home-page []
+(defn home-page-ui []
   [:div.container
-   [navbar :insert]
+   [navbar-ui :insert]
    [:h2 "Insert Hyphenations"]
    [:div.row
     [:div.col-md-6
@@ -241,23 +241,23 @@
      [:thead [:tr [:th "Word"] [:th "Hyphenation"]]]
      [:tbody
       (for [[word pattern] (:hyphenations @app-state)]
-        ^{:key word} [hyphenation-pattern pattern])]]]])
+        ^{:key word} [hyphenation-pattern-ui pattern])]]]])
 
-(defn edit-page []
+(defn edit-page-ui []
   [:div.container
-   [navbar :edit]
+   [navbar-ui :edit]
    [:h2 "Edit Hyphenations"]
    [:div.row
     [:div.col-md-6
-     [spelling-filter]]
+     [spelling-ui]]
     [:div.col-md-6
-     [hyphenation-filter word]]]
+     [search-ui word]]]
    [:div.row
     [:table#hyphenations.table.table-striped
      [:thead [:tr [:th "Word"] [:th "Hyphenation"] [:th ""]]]
      [:tbody
       (for [[word pattern] (:hyphenations @app-state)]
-        ^{:key word} [hyphenation-pattern-editable-item pattern])]]]])
+        ^{:key word} [hyphenation-pattern-item-ui pattern])]]]])
 
 (defn current-page []
   [:div [(session/get :current-page)]])
@@ -266,10 +266,10 @@
 ;; Routes
 
 (secretary/defroute "/" []
-  (session/put! :current-page #'home-page))
+  (session/put! :current-page #'home-page-ui))
 
 (secretary/defroute "/edit" []
-  (session/put! :current-page #'edit-page))
+  (session/put! :current-page #'edit-page-ui))
 
 ;; -------------------------
 ;; Initialize app
