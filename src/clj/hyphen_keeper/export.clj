@@ -65,21 +65,24 @@
       (sh program white-list dictionary))))
 
 (defn- exporter
-  "Attach an export listener to the given channel"
-  [in]
-  (async/go-loop []
-    (when-let [_ (async/<! in)]
-      (export*)
-      (recur)))
-  in)
+  "Create a channel and attach a listener to it so that events can be
+  debounced, i.e. while an export is pending only store one more
+  request. Return the channel where export requests can be sent to."
+  []
+  ;; we want to debounce, i.e. rate limit the amount of exports (see
+  ;; https://en.wikipedia.org/wiki/Switch#Contact_bounce.) In other
+  ;; words do not initiate another export while you are still doing
+  ;; one. For that we simply use a dropping buffer of size one which
+  ;; makes sure that we remember any request that came in while we
+  ;; were blocked doing the export.
+  (let [debounce-chan (async/chan (async/dropping-buffer 1))]
+    (async/go-loop []
+      (when-let [_ (async/<! debounce-chan)]
+        (export*)
+        (recur)))
+    debounce-chan))
 
-;; we want to debounce, i.e. rate limit the amount of exports (see
-;; https://en.wikipedia.org/wiki/Switch#Contact_bounce.) In
-;; other words do not initiate another export while you are still
-;; doing one. For that we simply use a dropping buffer of size one
-;; which makes sure that we remember any request that came in while we
-;; were blocked doing the export.
-(def export-chan (exporter (async/chan (async/dropping-buffer 1))))
+(def export-chan (exporter))
 
 (defn export
   "Like [export*] but with debouncing"
