@@ -203,13 +203,16 @@
 (defn- button [label href disabled]
   [:a.btn.btn-default {:href href :target "_blank" :disabled disabled} label])
 
-(defn hyphenation-lookup [word]
-  (let [disabled (when (string/blank? word) "disabled")]
-    [:div.row
-     [:div.btn-group {:role "group" :aria-label "Buttons for hyphenation lookup"}
-      (button "Duden" (str "http://www.duden.de/suchen/dudenonline/" word) disabled)
-      (button "TU Chemnitz" (str "http://dict.tu-chemnitz.de/?query=" word) disabled)
-      (button "PONS" (str "http://de.pons.eu/dict/search/results/?l=dede&q=" word) disabled)]]))
+(defn hyphenation-lookup-ui [spelling word]
+  (when (= @spelling 1)
+    [:div
+     [:h2 "Lookup"]
+     (let [disabled (when (string/blank? word) "disabled")]
+       [:div.row
+        [:div.btn-group {:role "group" :aria-label "Buttons for hyphenation lookup"}
+         (button "Duden" (str "http://www.duden.de/suchen/dudenonline/" word) disabled)
+         (button "TU Chemnitz" (str "http://dict.tu-chemnitz.de/?query=" word) disabled)
+         (button "PONS" (str "http://de.pons.eu/dict/search/results/?l=dede&q=" word) disabled)]])]))
 
 (defn- navbar-ui [active]
   [:nav.navbar.navbar-default
@@ -240,9 +243,13 @@
    [:h2 "Insert Hyphenations"]
    [:div.row
     [:div.col-md-6
-     [new-hyphenation]]]
-   [:h2 "Lookup"]
-   [hyphenation-lookup @word]
+     [:div.form
+      [spelling-ui]
+      [word-ui]
+      [suggested-hyphenation-ui]
+      [hyphenation-ui]
+      [hyphenation-add-ui]]]]
+   [hyphenation-lookup-ui spelling @word]
    [:h2 "Similar words"]
    [:div.row
     [:table#hyphenations.table.table-striped
