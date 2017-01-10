@@ -12,14 +12,12 @@
     :spelling 1
     :word ""
     :hyphenation ""
-    :suggested-hyphenation ""
-    :feedback {:message "" :kind :none}}))
+    :suggested-hyphenation ""}))
 
 (def spelling (reagent/cursor app-state [:spelling]))
 (def word (reagent/cursor app-state [:word]))
 (def hyphenation (reagent/cursor app-state [:hyphenation]))
 (def suggested-hyphenation (reagent/cursor app-state [:suggested-hyphenation]))
-(def feedback (reagent/cursor app-state [:feedback]))
 
 (defn update-hyphenations! [f & args]
   (apply swap! app-state update-in [:hyphenations] f args))
@@ -41,23 +39,11 @@
             :response-format :json
             :keywords? true))
 
-(defn set-feedback! [message kind]
-  (reset! feedback {:message message :kind kind})
-  (.setTimeout js/window #(reset! feedback {:message "" :kind :none}) 2000)
-  )
-
-(defn reset-all! []
-  (set-feedback! "Word successfully added" :success)
-  (reset! word "")
-  (reset! hyphenation "")
-  (reset! suggested-hyphenation "")
-  (load-hyphenation-patterns! @spelling @word))
-
 (defn add-hyphenation-pattern!
   [pattern]
   (ajax/POST "/api/words"
              :params pattern
-             :handler (fn [] (reset-all!))
+             :handler (fn [] (load-hyphenation-patterns! @spelling @word))
              :error-handler (fn [details]
                               (.warn js/console
                                      (str "Failed to add hyphenation pattern: " details)))
@@ -205,23 +191,6 @@
        :placeholder label
        :disabled "disabled"
        :value @suggested-hyphenation}]]))
-
-(defn feedback-alert []
-  (let [msg (:message @feedback)
-        klass (if-let [kind (:kind @feedback)]
-                (str "alert alert-" (name kind))
-                "alert")]
-    [:div {:class klass :role "alert"} msg]))
-
-(defn new-hyphenation []
-  [:div.form
-   [spelling-filter]
-   [word-field]
-   [suggested-hyphenation-field]
-   [hyphenation-field]
-   [hyphenation-add-button]
-   (when (not= :none (:kind @feedback))
-     [feedback-alert])])
 
 (defn- button [label href disabled]
   [:a.btn.btn-default {:href href :target "_blank" :disabled disabled} label])
