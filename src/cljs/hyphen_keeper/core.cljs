@@ -80,50 +80,58 @@
        (string/includes? s "-")
        (re-matches #"[a-z\xDF-\xFF-]+" s)))
 
-(defn hyphenation-pattern-editable-item [{:keys [hyphenation]}]
+(defn- hyphenation-pattern-readonly-ui
+  [word hyphenation start remove]
+  [:tr
+   [:td word]
+   [:td hyphenation]
+   [:td
+    [:div.btn-group
+     [:button.btn.btn-default
+      {:on-click start}
+      [:span.glyphicon.glyphicon-edit {:aria-hidden true}] " Edit"]
+     [:button.btn.btn-default
+      {:on-click remove}
+      [:span.glyphicon.glyphicon-trash {:aria-hidden true}] " Delete"]]]])
+
+(defn- hyphenation-pattern-edit-ui
+  [word new-hyphenation stop save]
+  [:tr
+   [:td word]
+   [:td
+    [:input.form-control
+     {:type "text"
+      :auto-focus true
+      :on-change #(reset! new-hyphenation (-> % .-target .-value))
+      :on-key-down #(case (.-which %)
+                      27 (stop)
+                      nil)
+      :value @new-hyphenation}]]
+   [:td
+    [:div.btn-group
+     [:button.btn.btn-default
+      {:on-click save}
+      [:span.glyphicon.glyphicon-ok {:aria-hidden true}] " Save"]
+     [:button.btn.btn-default
+      {:on-click stop}
+      [:span.glyphicon.glyphicon-remove {:aria-hidden true}] " Cancel"]]]])
+
+(defn hyphenation-pattern-item-ui [{:keys [hyphenation] :as pattern}]
   (let [editing (reagent/atom false)
         new-hyphenation (reagent/atom hyphenation)]
     (fn [{:keys [word hyphenation] :as pattern}]
-      (if-not @editing
-        [:tr
-         [:td word]
-         [:td hyphenation]
-         [:td
-          [:div.btn-group
-           [:button.btn.btn-default
-            {:on-click #(reset! editing true)}
-            [:span.glyphicon.glyphicon-edit {:aria-hidden true}] " Edit"]
-           [:button.btn.btn-default
-            {:on-click #(remove-hyphenation-pattern! pattern)}
-            [:span.glyphicon.glyphicon-trash {:aria-hidden true}] " Delete"]]]]
-        [:tr
-         [:td word]
-         [:td
-          [:input.form-control
-           {:type "text"
-            :auto-focus true
-            :on-change #(reset! new-hyphenation (-> % .-target .-value))
-            :on-key-down #(case (.-which %)
-                            27 (do
-                                 (reset! new-hyphenation hyphenation)
-                                 (reset! editing false))
-                            nil)
-            :value @new-hyphenation}]]
-         [:td
-          [:div.btn-group
-           [:button.btn.btn-default
-            {:on-click #(do (when (hyphenation-valid? @new-hyphenation)
-                              (add-hyphenation-pattern!
-                               (assoc pattern :hyphenation @new-hyphenation)))
-                            (reset! editing false))}
-            [:span.glyphicon.glyphicon-ok {:aria-hidden true}] " Save"]
-           [:button.btn.btn-default
-            {:on-click #(do
-                          (reset! new-hyphenation hyphenation)
-                          (reset! editing false))}
-            [:span.glyphicon.glyphicon-remove {:aria-hidden true}] " Cancel"]]]]))))
+      (let [stop #(do (reset! new-hyphenation hyphenation)
+                      (reset! editing false))
+            start #(reset! editing true)
+            save #(do (when (hyphenation-valid? @new-hyphenation)
+                        (add-hyphenation-pattern! (assoc pattern :hyphenation @new-hyphenation)))
+                      (reset! editing false))
+            remove #(remove-hyphenation-pattern! pattern)]
+        (if-not @editing
+          [hyphenation-pattern-readonly-ui word hyphenation start remove]
+          [hyphenation-pattern-edit-ui word new-hyphenation stop save])))))
 
-(defn word-field []
+(defn word-ui []
   [:div.form-group
    [:label {:for "wordInput"} "Word"]
    [:input.form-control
