@@ -13,7 +13,7 @@ if (!defined $ARGV[1]) {
 $fn = $ARGV[0];
 if (!-e $fn) { $fn = "hyphen.us"; }
 open HYPH, $fn;
-open OUT, ">$ARGV[1]";
+open OUT, ">$ARGV[1]" or die "Can't open > $ARGV[1]: $!";
 $encoding = $ARGV[2];
 $lhmin = $ARGV[3];
 $rhmin = $ARGV[4];
