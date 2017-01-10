@@ -165,7 +165,7 @@
   [:div.form-group
    [:select {:value @spelling
              :on-change (fn [e]
-                          (reset! spelling (-> e .-target .-value))
+                          (reset! spelling (-> e .-target .-value js/parseInt))
                           (load-hyphenation-patterns! @spelling @word)
                           (lookup-hyphenation-pattern! @spelling @word))}
     [:option {:value 0} "Old Spelling"]
