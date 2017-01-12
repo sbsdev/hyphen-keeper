@@ -75,10 +75,14 @@
    [:td word]
    [:td hyphenation]])
 
-(defn- hyphenation-valid? [s]
-  (and (not (string/blank? s))
-       (string/includes? s "-")
-       (re-matches #"[a-z\xDF-\xFF-]+" s)))
+(defn- hyphenation-valid?
+  "Return true if the `hyphenation` is not blank, is equal to
+  `word` (modulo the hyphenation marks) and only contains letters a-z,
+  \u00DF-\u00FF and '-'"
+  [hyphenation word]
+  (and (not (string/blank? hyphenation))
+       (= word (string/replace hyphenation "-" ""))
+       (re-matches #"[a-z\xDF-\xFF-]+" hyphenation)))
 
 (defn- hyphenation-pattern-readonly-ui
   [word hyphenation start remove]
@@ -96,25 +100,31 @@
 
 (defn- hyphenation-pattern-edit-ui
   [word new-hyphenation stop save]
-  [:tr
-   [:td word]
-   [:td
-    [:input.form-control
-     {:type "text"
-      :auto-focus true
-      :on-change #(reset! new-hyphenation (-> % .-target .-value))
-      :on-key-down #(case (.-which %)
-                      27 (stop)
-                      nil)
-      :value @new-hyphenation}]]
-   [:td
-    [:div.btn-group
-     [:button.btn.btn-default
-      {:on-click save}
-      [:span.glyphicon.glyphicon-ok {:aria-hidden true}] " Save"]
-     [:button.btn.btn-default
-      {:on-click stop}
-      [:span.glyphicon.glyphicon-remove {:aria-hidden true}] " Cancel"]]]])
+  (let [valid? (hyphenation-valid? @new-hyphenation word)
+        klass (if valid? "form-group" "form-group has-error")]
+    [:tr
+     [:td word]
+     [:td
+      [:div
+       {:class klass}
+       [:input.form-control
+        {:type "text"
+         :auto-focus true
+         :on-change #(reset! new-hyphenation (-> % .-target .-value))
+         :on-key-down #(case (.-which %)
+                         27 (stop)
+                         nil)
+         :value @new-hyphenation}]
+       (when-not valid?
+         [:span.sr-only "(error)"])]]
+     [:td
+      [:div.btn-group
+       [:button.btn.btn-default
+        {:on-click save}
+        [:span.glyphicon.glyphicon-ok {:aria-hidden true}] " Save"]
+       [:button.btn.btn-default
+        {:on-click stop}
+        [:span.glyphicon.glyphicon-remove {:aria-hidden true}] " Cancel"]]]]))
 
 (defn hyphenation-pattern-item-ui [{:keys [hyphenation] :as pattern}]
   (let [editing (reagent/atom false)
@@ -123,7 +133,7 @@
       (let [stop #(do (reset! new-hyphenation hyphenation)
                       (reset! editing false))
             start #(reset! editing true)
-            save #(do (when (hyphenation-valid? @new-hyphenation)
+            save #(do (when (hyphenation-valid? @new-hyphenation word)
                         (add-hyphenation-pattern! (assoc pattern :hyphenation @new-hyphenation)))
                       (reset! editing false))
             remove #(remove-hyphenation-pattern! pattern)]
@@ -147,8 +157,7 @@
 
 (defn hyphenation-ui []
   (let [label "Corrected Hyphenation"
-        valid? (or (string/blank? @hyphenation) (hyphenation-valid? @hyphenation))
-        klass (if valid? "form-group" "form-group has-error")]
+        klass (if (hyphenation-valid? @hyphenation @word) "form-group" "form-group has-error")]
     [:div
      {:class klass}
      [:label {:for "hyphenationInput"} label]
@@ -161,10 +170,11 @@
 (defn- hyphenation-add-ui []
   [:div.form-group
    [:button.btn.btn-default
-    {:on-click #(when (and @word (hyphenation-valid? @hyphenation))
+    {:on-click #(when (and (not (string/blank? @word))
+                           (hyphenation-valid? @hyphenation @word))
                   (add-hyphenation-pattern! {:word @word :hyphenation @hyphenation :spelling @spelling}))
      :disabled (when (or (string/blank? @word)
-                         (not (hyphenation-valid? @hyphenation))
+                         (not (hyphenation-valid? @hyphenation @word))
                          (= @hyphenation @suggested-hyphenation))
                  "disabled")}
     "Add"]])
