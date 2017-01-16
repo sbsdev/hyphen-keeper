@@ -8,6 +8,7 @@
                  [org.clojure/data.xml "0.1.0-beta3"]
                  [org.clojure/data.zip "0.1.2"]
                  [org.clojure/data.json "0.2.6"]
+                 [org.immutant/web "2.1.6"]
                  [ring-server "0.4.0"]
                  [ring "1.5.0"]
                  [ring/ring-defaults "0.2.1"]
@@ -27,6 +28,7 @@
                  [org.clojure/core.async "0.2.395"]]
 
   :plugins [[lein-environ "1.0.2"]
+            [lein-immutant "2.1.0"]
             [lein-cljsbuild "1.1.1"]
             [lein-asset-minifier "0.2.7"
              :exclusions [org.clojure/clojure]]]
@@ -97,7 +99,10 @@
    :css-dirs ["resources/public/css"]
    :ring-handler hyphen-keeper.handler/app}
 
-
+  :immutant {:war {:context-path "/"
+                   :name "%p%v%t"
+                   :nrepl {:port 40021
+                           :start? true}}}
 
   :profiles {:dev {:repl-options {:init-ns hyphen-keeper.repl
                                   :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}

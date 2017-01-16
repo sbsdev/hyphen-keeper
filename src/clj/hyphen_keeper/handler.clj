@@ -48,18 +48,20 @@
    (response/status 204)))
 
 (defroutes api-routes
-  (context "/api" []
-   (GET "/hyphenate" [spelling word] (hyphenate/hyphenate spelling word))
-   (GET "/words" [spelling search offset max-rows] (word-list spelling search offset max-rows))
-   (POST "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
-   (PUT "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
-   (DELETE "/words/:word" [word spelling] (word-delete word spelling))))
+  (GET "/hyphenate" [spelling word] (hyphenate/hyphenate spelling word))
+  (GET "/words" [spelling search offset max-rows] (word-list spelling search offset max-rows))
+  (POST "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
+  (PUT "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
+  (DELETE "/words/:word" [word spelling] (word-delete word spelling))
+  (not-found "Not Found"))
 
 (defroutes site-routes
   (GET "/" [] (loading-page))
   (resources "/")
   (not-found "Not Found"))
 
-(defroutes app
-  (wrap-api-middleware api-routes)
+(def site
   (wrap-site-middleware site-routes))
+
+(def api
+  (wrap-api-middleware api-routes))
