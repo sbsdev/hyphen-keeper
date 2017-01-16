@@ -2,7 +2,7 @@
   "Persistence for the hyphenation dictionary"
   (:require [yesql.core :refer [defqueries]]))
 
-(def ^:private db {:name "java:jboss/datasources/old-productions"})
+(def ^:private db {:name "java:jboss/datasources/hyphenations"})
 
 (defqueries "db/queries.sql" {:connection db})
 
