@@ -31,7 +31,8 @@
             [lein-immutant "2.1.0"]
             [lein-cljsbuild "1.1.1"]
             [lein-asset-minifier "0.2.7"
-             :exclusions [org.clojure/clojure]]]
+             :exclusions [org.clojure/clojure]]
+            [org.clojars.cvillecsteele/lein-git-version "1.0.3"]]
 
   :ring {:handler hyphen-keeper.handler/app
          :uberwar-name "hyphen-keeper.war"}
