@@ -2,7 +2,7 @@
   "Persistence for the hyphenation dictionary"
   (:require [yesql.core :refer [defqueries]]))
 
-(def ^:private db "jdbc:mysql://localhost:3306/hyphenation?user=hyphenation&serverTimezone=UTC")
+(def ^:private db {:name "java:jboss/datasources/old-productions"})
 
 (defqueries "hyphen_keeper/queries.sql" {:connection db})
 
