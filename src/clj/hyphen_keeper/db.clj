@@ -4,7 +4,7 @@
 
 (def ^:private db {:name "java:jboss/datasources/old-productions"})
 
-(defqueries "hyphen_keeper/queries.sql" {:connection db})
+(defqueries "db/queries.sql" {:connection db})
 
 (defn read-words
   "Return a coll of words for given `spelling`"
