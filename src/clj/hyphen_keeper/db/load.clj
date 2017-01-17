@@ -7,7 +7,8 @@
             [clojure.data.zip.xml :refer [text xml-> xml1->]]
             [clojure.java
              [io :as io]
-             [jdbc :as j]]))
+             [jdbc :as j]]
+            [hyphen-keeper.util :refer [hyphenation-valid?]]))
 
 (def ^:private db "jdbc:mysql://localhost:3306/hyphenation?user=hyphenation&serverTimezone=UTC")
 
@@ -34,6 +35,11 @@
              [key val])
            (into {})
            clean-raw-item))))
+
+(defn- valid-patterns [patterns]
+  (filter
+   (fn [{:keys [hyphenation word]}] (hyphenation-valid? hyphenation word))
+   patterns))
 
 (defn- initial-load
   [words]
