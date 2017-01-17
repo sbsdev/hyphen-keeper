@@ -14,8 +14,8 @@ CREATE TABLE spelling (
 );
 
 CREATE TABLE words (
-  word VARCHAR(256) NOT NULL,
-  hyphenation VARCHAR(256) NOT NULL,
+  word VARCHAR(255) NOT NULL,
+  hyphenation VARCHAR(255) NOT NULL,
   spelling TINYINT NOT NULL,
   PRIMARY KEY(word, spelling),
   FOREIGN KEY(spelling) REFERENCES spelling(id)
