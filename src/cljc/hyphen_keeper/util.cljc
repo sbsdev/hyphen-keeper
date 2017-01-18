@@ -4,9 +4,13 @@
 (defn hyphenation-valid?
   "Return true if the `hyphenation` is not blank, is equal to
   `word` (modulo the hyphenation marks) and only contains letters a-z,
-  \u00DF-\u00FF and '-'"
+  \u00DF-\u00FF and '-'. Also each '-' in the hyphenation should be
+  surrounded by letters."
   [hyphenation word]
   (and (not (string/blank? hyphenation))
        (= word (string/replace hyphenation "-" ""))
-       (re-matches #"[a-z\xDF-\xFF-]+" hyphenation)))
+       (not (string/starts-with? hyphenation "-"))
+       (not (string/ends-with? hyphenation "-"))
+       (not (string/includes? hyphenation "--"))
+       (some? (re-matches #"[a-z\xDF-\xFF-]+" hyphenation))))
 
