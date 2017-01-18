@@ -112,7 +112,8 @@
      [:td
       [:div.btn-group
        [:button.btn.btn-default
-        {:on-click save}
+        {:on-click save
+         :disabled (when-not valid? "disabled")}
         [:span.glyphicon.glyphicon-ok {:aria-hidden true}] " Save"]
        [:button.btn.btn-default
         {:on-click stop}
