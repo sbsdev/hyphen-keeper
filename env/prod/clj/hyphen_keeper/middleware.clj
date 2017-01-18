@@ -5,9 +5,9 @@
 
 (defn wrap-api-middleware [handler]
   (-> handler
-      (wrap-defaults api-defaults)
       wrap-json-params
-      wrap-json-response))
+      wrap-json-response
+      (wrap-defaults api-defaults)))
 
 (defn wrap-site-middleware [handler]
   (wrap-defaults handler site-defaults))
