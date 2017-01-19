@@ -187,7 +187,9 @@
   [:div.form-group
    [:button.btn.btn-default
     {:on-click #(when (and (not (string/blank? @word))
-                           (hyphenation-valid? @hyphenation @word))
+                           (hyphenation-valid? @hyphenation @word)
+                           (not (contains? @hyphenations @word))
+                           (not= @hyphenation @suggested-hyphenation))
                   (add-hyphenation-pattern! {:word @word :hyphenation @hyphenation :spelling @spelling}))
      :disabled (when (or (string/blank? @word)
                          (not (hyphenation-valid? @hyphenation @word))
