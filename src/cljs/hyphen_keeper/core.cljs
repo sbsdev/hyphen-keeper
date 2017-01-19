@@ -13,19 +13,25 @@
     :spelling 1
     :word ""
     :hyphenation ""
-    :suggested-hyphenation ""}))
+    :suggested-hyphenation ""
+    :feedback {:message "" :kind :none}}))
 
 (def spelling (reagent/cursor app-state [:spelling]))
 (def word (reagent/cursor app-state [:word]))
 (def hyphenations (reagent/cursor app-state [:hyphenations]))
 (def hyphenation (reagent/cursor app-state [:hyphenation]))
 (def suggested-hyphenation (reagent/cursor app-state [:suggested-hyphenation]))
+(def feedback (reagent/cursor app-state [:feedback]))
 
 (defn update-hyphenations! [f & args]
   (apply swap! app-state update-in [:hyphenations] f args))
 
 (defn remove-hyphenation! [{:keys [word]}]
   (update-hyphenations! dissoc word))
+
+(defn set-feedback! [message kind]
+  (reset! feedback {:message message :kind kind})
+  (.setTimeout js/window #(reset! feedback {:message "" :kind :none}) 5000))
 
 (defn load-hyphenation-patterns!
   [spelling word]
@@ -46,7 +52,9 @@
   [pattern]
   (ajax/POST "/api/words"
    :params pattern
-   :handler (fn [] (load-hyphenation-patterns! @spelling @word))
+   :handler (fn []
+              (set-feedback! "Word has been added" :success)
+              (load-hyphenation-patterns! @spelling @word))
    :error-handler (fn [details]
                     (.warn js/console
                            (str "Failed to add hyphenation pattern: " details)))
@@ -198,6 +206,12 @@
                  "disabled")}
     "Add"]])
 
+(defn feedback-ui [feedback]
+  (let [{:keys [kind message]} @feedback
+        klass (when-not (= kind :none) (str "alert-" (name kind)))]
+    (when-not (= kind :none)
+      [:div.alert {:class klass :role "alert"} message])))
+
 (defn spelling-ui []
   [:div.form-group
    [:select {:value @spelling
@@ -277,7 +291,8 @@
       [word-ui]
       [suggested-hyphenation-ui]
       [hyphenation-ui]
-      [hyphenation-add-ui]]]]
+      [hyphenation-add-ui]
+      [feedback-ui feedback]]]]
    [hyphenation-lookup-ui spelling @word]
    [:h2 "Similar words"]
    [:div.row
