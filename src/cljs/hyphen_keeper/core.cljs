@@ -87,7 +87,7 @@
       {:on-click start}
       [:span.glyphicon.glyphicon-edit {:aria-hidden true}] " Edit"]
      [:button.btn.btn-default
-      {:on-click remove}
+      {:on-click #(when (js/confirm (str "Really delete hyphenation pattern for " word "?")) (remove))}
       [:span.glyphicon.glyphicon-trash {:aria-hidden true}] " Delete"]]]])
 
 (defn- hyphenation-pattern-edit-ui
