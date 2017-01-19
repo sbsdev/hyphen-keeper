@@ -29,47 +29,49 @@
 (defn load-hyphenation-patterns!
   [spelling word]
   (ajax/GET "/api/words"
-            :params {:spelling spelling :search word}
-            :handler (fn [hyphenations] (swap! app-state assoc :hyphenations
-                                               (into (sorted-map)
-                                                     (map (fn [{:keys [word] :as pattern}] [word pattern])
-                                                          hyphenations))))
-            :error-handler (fn [details]
-                             (.warn js/console
-                                    (str "Failed to refresh hyphenation patterns from server: " details)))
-            :response-format :json
-            :keywords? true))
+   :params {:spelling spelling :search word}
+   :handler (fn [hyphenations]
+              (swap! app-state assoc :hyphenations
+                     (into (sorted-map)
+                           (map (fn [{:keys [word] :as pattern}] [word pattern])
+                                hyphenations))))
+   :error-handler (fn [details]
+                    (.warn js/console
+                           (str "Failed to refresh hyphenation patterns from server: " details)))
+   :response-format :json
+   :keywords? true))
 
 (defn add-hyphenation-pattern!
   [pattern]
   (ajax/POST "/api/words"
-             :params pattern
-             :handler (fn [] (load-hyphenation-patterns! @spelling @word))
-             :error-handler (fn [details]
-                              (.warn js/console
-                                     (str "Failed to add hyphenation pattern: " details)))
-             :format :json))
+   :params pattern
+   :handler (fn [] (load-hyphenation-patterns! @spelling @word))
+   :error-handler (fn [details]
+                    (.warn js/console
+                           (str "Failed to add hyphenation pattern: " details)))
+   :format :json))
 
 (defn remove-hyphenation-pattern!
   [pattern]
   (ajax/DELETE (str "/api/words/" (:word pattern))
-               :params pattern
-               :handler (fn [] (remove-hyphenation! pattern))
-               :error-handler (fn [details]
-                                (.warn js/console
-                                       (str "Failed to remove hyphenation pattern: " details)))
-               :format :json))
+   :params pattern
+   :handler (fn [] (remove-hyphenation! pattern))
+   :error-handler (fn [details]
+                    (.warn js/console
+                           (str "Failed to remove hyphenation pattern: " details)))
+   :format :json))
 
 (defn lookup-hyphenation-pattern!
   [spelling word]
   (ajax/GET "/api/hyphenate"
-            :params {:word word :spelling spelling}
-            :handler (fn [hyphenated] (do
-                                        (swap! app-state assoc :suggested-hyphenation hyphenated)
-                                        (swap! app-state assoc :hyphenation hyphenated)))
-            :error-handler (fn [details]
-                             (.warn js/console
-                                    (str "Failed to lookup hyphenation patterns for word: " details)))))
+   :params {:word word :spelling spelling}
+   :handler (fn [hyphenated]
+              (do
+                (swap! app-state assoc :suggested-hyphenation hyphenated)
+                (swap! app-state assoc :hyphenation hyphenated)))
+   :error-handler (fn [details]
+                    (.warn js/console
+                           (str "Failed to lookup hyphenation patterns for word: " details)))))
 
 (defn hyphenation-pattern-ui [{:keys [word hyphenation]}]
   [:tr
