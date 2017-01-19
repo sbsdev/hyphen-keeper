@@ -9,10 +9,10 @@
              [hyphenate :as hyphenate]]))
 
 (def dictionaries {0 ["/tmp/whitelist_de_DE_OLDSPELL.txt"
-                      "/tmp/hyph_de_DE_OLDSPELL.dic"
+                      "/usr/share/hyphen/hyph_de_DE_OLDSPELL.dic"
                       "dicts/hyph_de_DE_OLDSPELL.dic"]
                    1 ["/tmp/whitelist_de.txt"
-                      "/tmp/hyph_de_DE.dic"
+                      "/usr/share/hyphen/hyph_de_DE.dic"
                       "dicts/hyph_de_DE.dic"]})
 
 (defn- prepare-for-libhyphen
