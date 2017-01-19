@@ -17,6 +17,7 @@
 
 (def spelling (reagent/cursor app-state [:spelling]))
 (def word (reagent/cursor app-state [:word]))
+(def hyphenations (reagent/cursor app-state [:hyphenations]))
 (def hyphenation (reagent/cursor app-state [:hyphenation]))
 (def suggested-hyphenation (reagent/cursor app-state [:suggested-hyphenation]))
 
@@ -95,22 +96,24 @@
 (defn- hyphenation-pattern-edit-ui
   [word new-hyphenation stop save]
   (let [valid? (hyphenation-valid? @new-hyphenation word)
-        klass (if valid? "form-group" "form-group has-error")]
+        klass (when-not valid? "has-error")
+        help-text (when-not valid? "The hyphenation is not valid")]
     [:tr
      [:td word]
      [:td
-      [:div
+      [:div.form-group
        {:class klass}
        [:input.form-control
         {:type "text"
          :auto-focus true
+         :aria-describedby "hyphenationEditHelp"
          :on-change #(reset! new-hyphenation (-> % .-target .-value))
          :on-key-down #(case (.-which %)
                          27 (stop)
                          nil)
          :value @new-hyphenation}]
-       (when-not valid?
-         [:span.sr-only "(error)"])]]
+       (when help-text
+         [:span#hyphenationEditHelp.help-block help-text])]]
      [:td
       [:div.btn-group
        [:button.btn.btn-default
@@ -137,30 +140,48 @@
           [hyphenation-pattern-edit-ui word new-hyphenation stop save])))))
 
 (defn word-ui []
-  [:div.form-group
-   [:label {:for "wordInput"} "Word"]
-   [:input.form-control
-    {:id "wordInput"
-     :type "text"
-     :placeholder "Word"
-     :auto-focus true
-     :value @word
-     :on-change (fn [e]
-                  (reset! word (-> e .-target .-value string/lower-case))
-                  (load-hyphenation-patterns! @spelling @word))
-     :on-blur #(lookup-hyphenation-pattern! @spelling @word)}]])
+  (let [label "Word"
+        already-defined? (contains? @hyphenations @word)
+        klass (when already-defined? "has-warning")
+        help-text (when already-defined? "Word has already been defined. Use Edit to change it")]
+    [:div.form-group
+     {:class klass}
+     [:label.control-label {:for "wordInput"} label]
+     [:input.form-control
+      {:id "wordInput"
+       :type "text"
+       :placeholder label
+       :auto-focus true
+       :aria-describedby "wordHelp"
+       :value @word
+       :on-change (fn [e]
+                    (reset! word (-> e .-target .-value string/lower-case))
+                    (load-hyphenation-patterns! @spelling @word))
+       :on-blur #(lookup-hyphenation-pattern! @spelling @word)}]
+     (when help-text
+       [:span#wordHelp.help-block help-text])]))
 
 (defn hyphenation-ui []
   (let [label "Corrected Hyphenation"
-        klass (if (hyphenation-valid? @hyphenation @word) "form-group" "form-group has-error")]
-    [:div
+        valid? (hyphenation-valid? @hyphenation @word)
+        same-as-suggested? (= @hyphenation @suggested-hyphenation)
+        klass (cond
+                (not valid?) "has-error"
+                same-as-suggested? "has-warning")
+        help-text (cond
+                    (not valid?) "The hyphenation is not valid"
+                    (= @hyphenation @suggested-hyphenation) "The hyphenation is the same as the suggestion")]
+    [:div.form-group
      {:class klass}
-     [:label {:for "hyphenationInput"} label]
+     [:label.control-label {:for "hyphenationInput"} label]
      [:input.form-control
       {:type "text"
        :placeholder label
+       :aria-describedby "hyphenationHelp"
        :value @hyphenation
-       :on-change #(reset! hyphenation (-> % .-target .-value string/lower-case))}]]))
+       :on-change #(reset! hyphenation (-> % .-target .-value string/lower-case))}]
+     (when help-text
+       [:span#hyphenationHelp.help-block help-text])]))
 
 (defn- hyphenation-add-ui []
   [:div.form-group
