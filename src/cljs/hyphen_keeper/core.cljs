@@ -191,6 +191,7 @@
                   (add-hyphenation-pattern! {:word @word :hyphenation @hyphenation :spelling @spelling}))
      :disabled (when (or (string/blank? @word)
                          (not (hyphenation-valid? @hyphenation @word))
+                         (contains? @hyphenations @word)
                          (= @hyphenation @suggested-hyphenation))
                  "disabled")}
     "Add"]])
