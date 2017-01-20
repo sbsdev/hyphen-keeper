@@ -1,11 +1,12 @@
 (ns hyphen-keeper.handler
   (:require [clojure.string :as string]
             [compojure
-             [core :refer [context defroutes DELETE GET POST PUT]]
+             [core :refer [defroutes DELETE GET POST PUT]]
              [route :refer [not-found resources]]]
             [hiccup.page :refer [html5 include-css include-js]]
             [hyphen-keeper
              [db :as db]
+             [export :as export]
              [hyphenate :as hyphenate]
              [middleware :refer [wrap-api-middleware wrap-site-middleware]]]
             [ring.util.response :as response]))
@@ -40,10 +41,12 @@
 
 (defn- word-add [word hyphenation spelling]
   (db/save-word! word hyphenation spelling)
+  (export/export)
   (response/created (str "/api/words/" word)))
 
 (defn- word-delete [word spelling]
   (db/remove-word! word spelling)
+  (export/export)
   (-> nil
    response/response
    (response/status 204)))
