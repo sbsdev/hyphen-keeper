@@ -71,16 +71,23 @@
    :format :json))
 
 (defn lookup-hyphenation-pattern!
-  [spelling word]
-  (ajax/GET "/api/hyphenate"
-   :params {:word word :spelling spelling}
-   :handler (fn [hyphenated]
-              (do
-                (swap! app-state assoc :suggested-hyphenation hyphenated)
-                (swap! app-state assoc :hyphenation hyphenated)))
-   :error-handler (fn [details]
-                    (.warn js/console
-                           (str "Failed to lookup hyphenation patterns for word: " details)))))
+  "Fetch the hyphenation pattern from the server for given `spelling`
+  and `word`. If a `handler` is given invoke it on success. Otherwise
+  use a default handler which updates the `app-state` in
+  `:suggested-hyphenation` and `:hyphenation`."
+  ([spelling word]
+   (let [handler (fn [hyphenated]
+                   (do
+                     (swap! app-state assoc :suggested-hyphenation hyphenated)
+                     (swap! app-state assoc :hyphenation hyphenated)))]
+     (lookup-hyphenation-pattern! spelling word handler)))
+  ([spelling word handler]
+   (ajax/GET "/api/hyphenate"
+             :params {:word word :spelling spelling}
+             :handler handler
+             :error-handler (fn [details]
+                              (.warn js/console
+                                     (str "Failed to lookup hyphenation patterns for word: " details))))))
 
 (defn hyphenation-pattern-ui [{:keys [word hyphenation]}]
   [:tr
@@ -102,10 +109,15 @@
       [:span.glyphicon.glyphicon-trash {:aria-hidden true}] " Delete"]]]])
 
 (defn- hyphenation-pattern-edit-ui
-  [word new-hyphenation stop save]
+  [word new-hyphenation new-suggestion stop save]
   (let [valid? (hyphenation-valid? @new-hyphenation word)
-        klass (when-not valid? "has-error")
-        help-text (when-not valid? "The hyphenation is not valid")]
+        same-as-suggested? (= @new-hyphenation @new-suggestion)
+        klass (cond
+                (not valid?) "has-error"
+                same-as-suggested? "has-warning")
+        help-text (cond
+                    (not valid?) "The hyphenation is not valid"
+                    same-as-suggested? "The hyphenation is the same as the suggestion")]
     [:tr
      [:td word]
      [:td
@@ -126,7 +138,7 @@
       [:div.btn-group
        [:button.btn.btn-default
         {:on-click save
-         :disabled (when-not valid? "disabled")}
+         :disabled (when (or (not valid?) same-as-suggested?) "disabled")}
         [:span.glyphicon.glyphicon-ok {:aria-hidden true}] " Save"]
        [:button.btn.btn-default
         {:on-click stop}
@@ -134,18 +146,22 @@
 
 (defn hyphenation-pattern-item-ui [{:keys [hyphenation] :as pattern}]
   (let [editing (reagent/atom false)
-        new-hyphenation (reagent/atom hyphenation)]
+        new-hyphenation (reagent/atom hyphenation)
+        new-suggestion (reagent/atom "")]
     (fn [{:keys [word hyphenation] :as pattern}]
       (let [stop #(do (reset! new-hyphenation hyphenation)
                       (reset! editing false))
-            start #(reset! editing true)
+            start #(do (reset! editing true)
+                       (lookup-hyphenation-pattern!
+                        @spelling word
+                        (fn [hyphenation] (reset! new-suggestion hyphenation))))
             save #(do (when (hyphenation-valid? @new-hyphenation word)
                         (add-hyphenation-pattern! (assoc pattern :hyphenation @new-hyphenation)))
                       (reset! editing false))
             remove #(remove-hyphenation-pattern! pattern)]
         (if-not @editing
           [hyphenation-pattern-readonly-ui word hyphenation start remove]
-          [hyphenation-pattern-edit-ui word new-hyphenation stop save])))))
+          [hyphenation-pattern-edit-ui word new-hyphenation new-suggestion stop save])))))
 
 (defn word-ui []
   (let [label "Word"
