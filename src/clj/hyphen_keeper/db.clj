@@ -1,6 +1,7 @@
 (ns hyphen-keeper.db
   "Persistence for the hyphenation dictionary"
-  (:require [yesql.core :refer [defqueries]]))
+  (:require [yesql.core :refer [defqueries]])
+  (:import java.sql.SQLSyntaxErrorException))
 
 (def ^:private db {:name "java:jboss/datasources/hyphenations"})
 
@@ -20,8 +21,11 @@
 (defn search-words
   "Return a coll of words for given `spelling` and given `search` term"
   [spelling search]
-  (-> {:spelling spelling :search search}
-      words-search))
+  (try
+    (-> {:spelling spelling :search search}
+        words-search)
+    ;; ignore exceptions due to incomplete regexps
+    (catch SQLSyntaxErrorException e ())))
 
 (defn save-word!
   "Persist `word` with given `hyphenation` and `spelling`"
