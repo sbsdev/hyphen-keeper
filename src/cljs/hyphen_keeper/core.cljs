@@ -187,14 +187,15 @@
 
 (defn hyphenation-ui []
   (let [label "Corrected Hyphenation"
-        valid? (hyphenation-valid? @hyphenation @word)
-        same-as-suggested? (= @hyphenation @suggested-hyphenation)
+        blank? (string/blank? @word)
+        valid? (or blank? (hyphenation-valid? @hyphenation @word))
+        same-as-suggested? (and (not blank?) (= @hyphenation @suggested-hyphenation))
         klass (cond
                 (not valid?) "has-error"
                 same-as-suggested? "has-warning")
         help-text (cond
                     (not valid?) "The hyphenation is not valid"
-                    (= @hyphenation @suggested-hyphenation) "The hyphenation is the same as the suggestion")]
+                    same-as-suggested? "The hyphenation is the same as the suggestion")]
     [:div.form-group
      {:class klass}
      [:label.control-label {:for "hyphenationInput"} label]
