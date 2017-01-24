@@ -1,6 +1,7 @@
 (ns hyphen-keeper.handler
   (:require [clojure.string :as string]
             [compojure
+             [coercions :refer [as-int]]
              [core :refer [defroutes DELETE GET POST PUT]]
              [route :refer [not-found resources]]]
             [hiccup.page :refer [html5 include-css include-js]]
@@ -33,9 +34,9 @@
      mount-target
      (include-js "/js/app.js")]))
 
-(defn- word-list [spelling search offset max-rows]
+(defn- word-list [search spelling offset max-rows]
   (let [resp (if (string/blank? search)
-               (db/read-words-paginated spelling (or offset 0) (or max-rows 100))
+               (db/read-words-paginated spelling (or (as-int offset) 0) (or (as-int max-rows) 100))
                (db/search-words spelling search))]
     (response/response resp)))
 
@@ -52,11 +53,11 @@
    (response/status 204)))
 
 (defroutes api-routes
-  (GET "/hyphenate" [spelling word] (hyphenate/hyphenate spelling word))
-  (GET "/words" [spelling search offset max-rows] (word-list spelling search offset max-rows))
-  (POST "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
-  (PUT "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
-  (DELETE "/words/:word" [word spelling] (word-delete word spelling))
+  (GET "/hyphenate" [word spelling :<< as-int] (hyphenate/hyphenate word spelling))
+  (GET "/words" [search spelling  :<< as-int offset max-rows] (word-list search spelling offset max-rows))
+  (POST "/words" [word hyphenation spelling :<< as-int] (word-add word hyphenation spelling))
+  (PUT "/words" [word hyphenation spelling :<< as-int] (word-add word hyphenation spelling))
+  (DELETE "/words/:word" [word spelling :<< as-int] (word-delete word spelling))
   (not-found "Not Found"))
 
 (defroutes site-routes

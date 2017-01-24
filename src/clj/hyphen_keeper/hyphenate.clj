@@ -13,10 +13,11 @@
    (map #(new Hyphenator (io/file %)) (vals hyphen-dictionaries))))
 
 (defn hyphenate
-  "Hyphenate the given text by inserting the given `hyphen` char"
-  ([spelling text]
-   (hyphenate spelling text \-))
-  ([spelling text hyphen]
+  "Hyphenate the given `text` for given `spelling` by inserting the
+  given `hyphen` char"
+  ([text spelling]
+   (hyphenate text spelling \-))
+  ([text spelling hyphen]
    (if (string/blank? text)
      ""
      (let [hyphenator
