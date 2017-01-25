@@ -37,7 +37,7 @@
    ;; filter the ones that aren't hyphenated correctly
    (remove
     (fn [{:keys [word hyphenation]}]
-      (= (hyphenate/hyphenate spelling word) hyphenation)))
+      (= (hyphenate/hyphenate word spelling) hyphenation)))
    (map :hyphenation)
    (remove string/blank?) ; drop empty ones
    (filter #(string/includes? % "-")) ; drop hyphenations w/o a hyphen
