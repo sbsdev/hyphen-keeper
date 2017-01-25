@@ -4,6 +4,7 @@
              [io :as io]
              [shell :refer [sh]]]
             [clojure.string :as string]
+            [clojure.tools.logging :as log]
             [hyphen-keeper
              [db :as db]
              [hyphenate :as hyphenate]]))
@@ -62,10 +63,12 @@
   ;; i.e. the first one is very small compared to the second one, we
   ;; end up waiting the same time.
   (doseq [[spelling [white-list dictionary original]] dictionaries]
+    (log/info "Writing the white-list")
     (->
      spelling
      get-hyphenations
      (write-file white-list original))
+    (log/info "Running substrings.pl")
     (sh substrings-program white-list dictionary)))
 
 (defn- exporter

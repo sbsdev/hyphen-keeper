@@ -25,7 +25,8 @@
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7" :exclusions [org.clojure/tools.reader]]
                  [cljs-ajax "0.5.8"]
-                 [org.clojure/core.async "0.2.395"]]
+                 [org.clojure/core.async "0.2.395"]
+                 [org.clojure/tools.logging "0.3.1"]]
 
   :plugins [[lein-environ "1.0.2"]
             [lein-immutant "2.1.0"]
