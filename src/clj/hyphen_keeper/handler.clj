@@ -55,9 +55,9 @@
 (defroutes api-routes
   (GET "/hyphenate" [word spelling :<< as-int] (hyphenate/hyphenate word spelling))
   (GET "/words" [search spelling  :<< as-int offset max-rows] (word-list search spelling offset max-rows))
-  (POST "/words" [word hyphenation spelling :<< as-int] (word-add word hyphenation spelling))
-  (PUT "/words" [word hyphenation spelling :<< as-int] (word-add word hyphenation spelling))
-  (DELETE "/words/:word" [word spelling :<< as-int] (word-delete word spelling))
+  (POST "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
+  (PUT "/words" [word hyphenation spelling] (word-add word hyphenation spelling))
+  (DELETE "/words/:word" [word spelling] (word-delete word spelling))
   (not-found "Not Found"))
 
 (defroutes site-routes
