@@ -8,6 +8,11 @@
              [db :as db]
              [hyphenate :as hyphenate]]))
 
+(def ^:private substrings-program
+  "Program to prepare the hyphenation dics. Expected to be installed
+  on the system."
+  "/usr/share/libhyphen/substrings.pl")
+
 (def dictionaries {0 ["/tmp/whitelist_de_DE_OLDSPELL.txt"
                       "/usr/share/hyphen/hyph_de_DE_OLDSPELL.dic"
                       "dicts/hyph_de_DE_OLDSPELL.dic"]
@@ -52,17 +57,16 @@
   "Export all hyphenation patterns from the database and prepare for
   libhyphen consumption, i.e. run them through substrings.pl"
   []
-  (let [program (.getAbsolutePath (io/file (io/resource "perl/substrings.pl")))]
-    ;; I tried to run this in parallel (simply by using (dorun (pmap))
-    ;; instead of (doseq)) but as it turns out the jobs are so uneven,
-    ;; i.e. the first one is very small compared to the second one, we
-    ;; end up waiting the same time.
-    (doseq [[spelling [white-list dictionary original]] dictionaries]
-      (->
-       spelling
-       get-hyphenations
-       (write-file white-list original))
-      (sh program white-list dictionary))))
+  ;; I tried to run this in parallel (simply by using (dorun (pmap))
+  ;; instead of (doseq)) but as it turns out the jobs are so uneven,
+  ;; i.e. the first one is very small compared to the second one, we
+  ;; end up waiting the same time.
+  (doseq [[spelling [white-list dictionary original]] dictionaries]
+    (->
+     spelling
+     get-hyphenations
+     (write-file white-list original))
+    (sh substrings-program white-list dictionary)))
 
 (defn- exporter
   "Create a channel and attach a listener to it so that events can be
