@@ -49,15 +49,11 @@
    :keywords? true))
 
 (defn add-hyphenation-pattern!
-  [pattern]
+  [pattern on-success on-error]
   (ajax/POST "/api/words"
    :params pattern
-   :handler (fn []
-              (set-feedback! "Word has been added" :success)
-              (load-hyphenation-patterns! @spelling @word))
-   :error-handler (fn [details]
-                    (.warn js/console
-                           (str "Failed to add hyphenation pattern: " details)))
+   :handler on-success
+   :error-handler on-error
    :format :json))
 
 (defn remove-hyphenation-pattern!
@@ -156,7 +152,12 @@
                         @spelling word
                         (fn [hyphenation] (reset! new-suggestion hyphenation))))
             save #(do (when (hyphenation-valid? @new-hyphenation word)
-                        (add-hyphenation-pattern! (assoc pattern :hyphenation @new-hyphenation)))
+                        (let [pattern (assoc pattern :hyphenation @new-hyphenation)
+                              on-success (fn [] (swap! app-state assoc-in [:hyphenations word] pattern))
+                              on-error (fn [details]
+                                         (.warn js/console
+                                          (str "Failed to update hyphenation pattern: " details)))]
+                          (add-hyphenation-pattern! pattern on-success on-error)))
                       (reset! editing false))
             remove #(remove-hyphenation-pattern! pattern)]
         (if-not @editing
@@ -215,7 +216,18 @@
                            (hyphenation-valid? @hyphenation @word)
                            (not (contains? @hyphenations @word))
                            (not= @hyphenation @suggested-hyphenation))
-                  (add-hyphenation-pattern! {:word @word :hyphenation @hyphenation :spelling @spelling}))
+                  (let [pattern {:word @word :hyphenation @hyphenation :spelling @spelling}
+                        on-success (fn []
+                                     (set-feedback! "Word has been added" :success)
+                                     ;; reset all form fields as if we had submitted the form
+                                     (reset! word "")
+                                     (reset! suggested-hyphenation "")
+                                     (reset! hyphenation "")
+                                     ;; reload the patterns
+                                     (load-hyphenation-patterns! @spelling @word))
+                        on-error (fn [details]
+                                   (set-feedback! (str "Failed to add hyphenation pattern: " details) :error))]
+                    (add-hyphenation-pattern! pattern on-success on-error)))
      :disabled (when (or (string/blank? @word)
                          (not (hyphenation-valid? @hyphenation @word))
                          (contains? @hyphenations @word)
