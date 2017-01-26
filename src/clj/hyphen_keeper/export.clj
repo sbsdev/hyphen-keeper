@@ -63,13 +63,13 @@
   ;; i.e. the first one is very small compared to the second one, we
   ;; end up waiting the same time.
   (doseq [[spelling [white-list dictionary original]] dictionaries]
-    (log/info "Writing the white-list")
     (->
      spelling
      get-hyphenations
      (write-file white-list original))
-    (log/info "Running substrings.pl")
-    (sh substrings-program white-list dictionary)))
+    (log/infof "Wrote the white-list %s" white-list)
+    (sh substrings-program white-list dictionary)
+    (log/infof "Ran substrings.pl on %s producing %s" white-list dictionary)))
 
 (defn- exporter
   "Create a channel and attach a listener to it so that events can be
