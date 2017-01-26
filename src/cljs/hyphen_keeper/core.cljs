@@ -227,7 +227,7 @@
                                      ;; reload the patterns
                                      (load-hyphenation-patterns! @spelling @word))
                         on-error (fn [details]
-                                   (set-feedback! (str "Failed to add hyphenation pattern: " details) :error))]
+                                   (set-feedback! (str "Failed to add hyphenation pattern: " details) :danger))]
                     (add-hyphenation-pattern! pattern on-success on-error)))
      :disabled (when (or (string/blank? @word)
                          (not (hyphenation-valid? @hyphenation @word))
