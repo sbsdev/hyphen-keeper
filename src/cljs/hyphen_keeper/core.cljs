@@ -153,12 +153,13 @@
                         (fn [hyphenation] (reset! new-suggestion hyphenation))))
             save #(do (when (hyphenation-valid? @new-hyphenation word)
                         (let [pattern (assoc pattern :hyphenation @new-hyphenation)
-                              on-success (fn [] (swap! app-state assoc-in [:hyphenations word] pattern))
+                              on-success (fn []
+                                           (swap! app-state assoc-in [:hyphenations word] pattern)
+                                           (reset! editing false))
                               on-error (fn [details]
                                          (.warn js/console
                                           (str "Failed to update hyphenation pattern: " details)))]
-                          (add-hyphenation-pattern! pattern on-success on-error)))
-                      (reset! editing false))
+                          (add-hyphenation-pattern! pattern on-success on-error))))
             remove #(remove-hyphenation-pattern! pattern)]
         (if-not @editing
           [hyphenation-pattern-readonly-ui word hyphenation start remove]
