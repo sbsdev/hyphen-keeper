@@ -7,7 +7,9 @@
             [clojure.tools.logging :as log]
             [hyphen-keeper
              [db :as db]
-             [hyphenate :as hyphenate]]))
+             [hyphenate :as hyphenate]]
+            [org.tobereplaced.nio.file :as nio])
+  (:import java.nio.file.StandardCopyOption))
 
 (def ^:private substrings-program
   "Program to prepare the hyphenation dics. Expected to be installed
@@ -15,10 +17,10 @@
   "/usr/share/libhyphen/substrings.pl")
 
 (def dictionaries {0 ["/tmp/whitelist_de_DE_OLDSPELL.txt"
-                      "/usr/share/hyphen/hyph_de_DE_OLDSPELL.dic"
+                      "/usr/share/hyphen/generated/hyph_de_DE_OLDSPELL.dic"
                       "dicts/hyph_de_DE_OLDSPELL.dic"]
                    1 ["/tmp/whitelist_de.txt"
-                      "/usr/share/hyphen/hyph_de_DE.dic"
+                      "/usr/share/hyphen/generated/hyph_de_DE.dic"
                       "dicts/hyph_de_DE.dic"]})
 
 (defn- prepare-for-libhyphen
@@ -61,15 +63,18 @@
   ;; I tried to run this in parallel (simply by using (dorun (pmap))
   ;; instead of (doseq)) but as it turns out the jobs are so uneven,
   ;; i.e. the first one is very small compared to the second one, we
-  ;; end up waiting the same time.
+  ;; end up waiting the same amount of time.
   (doseq [[spelling [white-list dictionary original]] dictionaries]
     (->
      spelling
      get-hyphenations
      (write-file white-list original))
     (log/infof "Wrote the white-list %s" white-list)
-    (sh substrings-program white-list dictionary)
-    (log/infof "Ran substrings.pl on %s producing %s" white-list dictionary)))
+    (let [tmp-file (nio/absolute-path (nio/create-temp-file! "hyphen-" ".dic"))]
+      (sh substrings-program white-list (str tmp-file))
+      (log/infof "Ran substrings.pl on %s producing %s" white-list tmp-file)
+      (nio/move! tmp-file dictionary StandardCopyOption/REPLACE_EXISTING)
+      (log/infof "Move %s to %s" tmp-file dictionary))))
 
 (defn- exporter
   "Create a channel and attach a listener to it so that events can be
