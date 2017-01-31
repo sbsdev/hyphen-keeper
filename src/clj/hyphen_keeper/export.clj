@@ -74,7 +74,9 @@
       (sh substrings-program white-list (str tmp-file))
       (log/infof "Ran substrings.pl on %s producing %s" white-list tmp-file)
       (nio/move! tmp-file dictionary StandardCopyOption/REPLACE_EXISTING)
-      (log/infof "Move %s to %s" tmp-file dictionary))))
+      (log/infof "Move %s to %s" tmp-file dictionary))
+    ;; reload the hyphenation dictionaries
+    (hyphenate/reload!)))
 
 (defn- exporter
   "Create a channel and attach a listener to it so that events can be
