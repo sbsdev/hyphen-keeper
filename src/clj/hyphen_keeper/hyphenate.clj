@@ -13,8 +13,8 @@
    1 "/usr/share/hyphen/hyph_de_DE.dic"})
 
 (def base-hyphen-dictionaries
-  {0 (io/resource "dicts/hyph_de_DE_OLDSPELL.dic")
-   1 (io/resource "dicts/hyph_de_DE.dic")})
+  {0 "/usr/share/hyphen/hyph_de_DE_OLDSPELL_base.dic"
+   1 "/usr/share/hyphen/hyph_de_DE_base.dic"})
 
 (defn- load-hyphenators
   "Given a map of keys for spelling and paths to hyphenation
@@ -38,7 +38,7 @@
   "Reload the hyphenator map. Typically this is needed when the
   hyphenation dicts are re-generated."
   []
-  (reset! hyphenators (load-hyphenators)))
+  (reset! hyphenators (load-hyphenators hyphen-dictionaries)))
 
 (defn- hyphenate*
   "Hyphenate given `text` using a given `hyphenator`"

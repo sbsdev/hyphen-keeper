@@ -16,12 +16,12 @@
   on the system."
   "/usr/share/libhyphen/substrings.pl")
 
-(def dictionaries {0 ["/tmp/whitelist_de_DE_OLDSPELL.txt"
-                      "/usr/share/hyphen/generated/hyph_de_DE_OLDSPELL.dic"
-                      "dicts/hyph_de_DE_OLDSPELL.dic"]
-                   1 ["/tmp/whitelist_de.txt"
-                      "/usr/share/hyphen/generated/hyph_de_DE.dic"
-                      "dicts/hyph_de_DE.dic"]})
+(def dictionaries {0 {:whitelist "/tmp/whitelist_de_DE_OLDSPELL.txt"
+                      :dictionary "/usr/share/hyphen/generated/hyph_de_DE_OLDSPELL.dic"
+                      :original "/usr/share/hyphen/hyph_de_DE_OLDSPELL_base.dic"}
+                   1 {:whitelist "/tmp/whitelist_de.txt"
+                      :dictionary "/usr/share/hyphen/generated/hyph_de_DE.dic"
+                      :original "/usr/share/hyphen/hyph_de_DE_base.dic"}})
 
 (defn- prepare-for-libhyphen
   "Prepare a hyphenation string for consumption by libhyphen"
@@ -47,11 +47,10 @@
    sort
    (map prepare-for-libhyphen)))
 
-
-(defn- write-file [words file-name original-dict-name]
+(defn- write-file [words file-name original-dict]
   (with-open [w (io/writer file-name :encoding "ISO-8859-1")]
     ;; insert the original dict
-    (io/copy (io/reader (io/resource original-dict-name) :encoding "ISO-8859-1") w)
+    (io/copy (io/file original-dict) w :encoding "ISO-8859-1")
     (doseq [word words]
       (.write w word)
       (.newLine w))))
@@ -64,15 +63,15 @@
   ;; instead of (doseq)) but as it turns out the jobs are so uneven,
   ;; i.e. the first one is very small compared to the second one, we
   ;; end up waiting the same amount of time.
-  (doseq [[spelling [white-list dictionary original]] dictionaries]
+  (doseq [[spelling {:keys [whitelist dictionary original]}] dictionaries]
     (->
      spelling
      get-hyphenations
-     (write-file white-list original))
-    (log/infof "Wrote the white-list %s" white-list)
+     (write-file whitelist original))
+    (log/infof "Wrote the whitelist %s" whitelist)
     (let [tmp-file (nio/absolute-path (nio/create-temp-file! "hyphen-" ".dic"))]
-      (sh substrings-program white-list (str tmp-file))
-      (log/infof "Ran substrings.pl on %s producing %s" white-list tmp-file)
+      (sh substrings-program whitelist (str tmp-file))
+      (log/infof "Ran substrings.pl on %s producing %s" whitelist tmp-file)
       (nio/move! tmp-file dictionary StandardCopyOption/REPLACE_EXISTING)
       (log/infof "Move %s to %s" tmp-file dictionary))
     ;; reload the hyphenation dictionaries
