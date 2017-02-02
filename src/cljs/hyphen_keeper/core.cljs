@@ -182,8 +182,8 @@
        :value @word
        :on-change (fn [e]
                     (reset! word (-> e .-target .-value string/lower-case))
-                    (load-hyphenation-patterns! @spelling @word))
-       :on-blur #(lookup-hyphenation-pattern! @spelling @word)}]
+                    (load-hyphenation-patterns! @spelling @word)
+                    (lookup-hyphenation-pattern! @spelling @word))}]
      (when help-text
        [:span#wordHelp.help-block help-text])]))
 
