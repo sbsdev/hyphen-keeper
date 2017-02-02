@@ -55,6 +55,14 @@
       (.write w word)
       (.newLine w))))
 
+(defn- set-file-permissions!
+  "Make sure `file` is readable for group and others"
+  [file]
+  (let [permissions (conj (nio/posix-file-permissions file)
+                          (nio/posix-file-permission :group-read)
+                          (nio/posix-file-permission :others-read))]
+    (nio/set-posix-file-permissions! file permissions)))
+
 (defn- export*
   "Export all hyphenation patterns from the database and prepare for
   libhyphen consumption, i.e. run them through substrings.pl"
@@ -72,6 +80,7 @@
     (let [tmp-file (nio/absolute-path (nio/create-temp-file! "hyphen-" ".dic"))]
       (sh substrings-program whitelist (str tmp-file))
       (log/infof "Ran substrings.pl on %s producing %s" whitelist tmp-file)
+      (set-file-permissions! tmp-file)
       (nio/move! tmp-file dictionary StandardCopyOption/REPLACE_EXISTING)
       (log/infof "Move %s to %s" tmp-file dictionary))
     ;; reload the hyphenation dictionaries
