@@ -189,7 +189,7 @@
 
 (defn hyphenation-ui []
   (let [label "Corrected Hyphenation"
-        blank? (string/blank? @word)
+        blank? (or (string/blank? @word) (string/blank? @suggested-hyphenation))
         valid? (or blank? (hyphenation-valid? @hyphenation @word))
         same-as-suggested? (and (not blank?) (= @hyphenation @suggested-hyphenation))
         klass (cond
