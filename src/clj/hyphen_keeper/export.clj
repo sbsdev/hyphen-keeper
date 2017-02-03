@@ -39,7 +39,7 @@
    ;; filter the ones that aren't hyphenated correctly
    (remove
     (fn [{:keys [word hyphenation]}]
-      (= (hyphenate/hyphenate-against-base word spelling) hyphenation)))
+      (= (hyphenate/hyphenate word spelling) hyphenation)))
    (map :hyphenation)
    (remove string/blank?) ; drop empty ones
    (filter #(string/includes? % "-")) ; drop hyphenations w/o a hyphen
@@ -82,9 +82,7 @@
       (log/infof "Ran substrings.pl on %s producing %s" whitelist tmp-file)
       (set-file-permissions! tmp-file)
       (nio/move! tmp-file dictionary StandardCopyOption/REPLACE_EXISTING)
-      (log/infof "Move %s to %s" tmp-file dictionary))
-    ;; reload the hyphenation dictionaries
-    (hyphenate/reload!)))
+      (log/infof "Move %s to %s" tmp-file dictionary))))
 
 (defn- exporter
   "Create a channel and attach a listener to it so that events can be
