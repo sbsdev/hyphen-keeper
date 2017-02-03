@@ -1,5 +1,7 @@
 (ns hyphen-keeper.i18n)
 
+;; the idea for this comes from
+;; http://www.mattzabriskie.com/blog/detecting-locale
 (defn lang-attribute []
   (.. js/document -documentElement (getAttribute "lang")))
 
