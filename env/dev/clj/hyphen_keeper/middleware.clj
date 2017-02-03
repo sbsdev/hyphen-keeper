@@ -1,6 +1,7 @@
 (ns hyphen-keeper.middleware
   (:require [prone.middleware :refer [wrap-exceptions]]
             [ring.middleware
+             [accept :refer [wrap-accept]]
              [defaults :refer [api-defaults site-defaults wrap-defaults]]
              [json :refer [wrap-json-params wrap-json-response]]
              [reload :refer [wrap-reload]]]))
@@ -16,5 +17,6 @@
 (defn wrap-site-middleware [handler]
   (-> handler
       (wrap-defaults site-defaults)
+      (wrap-accept {:language ["en" "de"]})
       wrap-exceptions
       wrap-reload))

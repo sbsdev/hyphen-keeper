@@ -27,12 +27,13 @@
            :content "width=device-width, initial-scale=1"}]
    (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")])
 
-(defn loading-page []
+(defn loading-page [lang]
   (html5
-    (head)
-    [:body {:class "body-container"}
-     mount-target
-     (include-js "/js/app.js")]))
+   {:lang lang}
+   (head)
+   [:body {:class "body-container"}
+    mount-target
+    (include-js "/js/app.js")]))
 
 (defn- word-list [search spelling offset max-rows]
   (let [resp (if (string/blank? search)
@@ -61,7 +62,7 @@
   (not-found "Not Found"))
 
 (defroutes site-routes
-  (GET "/" [] (loading-page))
+  (GET "/" {{language :language} :accept} (loading-page language))
   (resources "/")
   (not-found "Not Found"))
 
