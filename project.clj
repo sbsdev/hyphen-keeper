@@ -8,6 +8,8 @@
                  [org.clojure/data.xml "0.1.0-beta3"]
                  [org.clojure/data.zip "0.1.2"]
                  [org.clojure/data.json "0.2.6"]
+                 [org.clojure/core.async "0.2.395"]
+                 [org.clojure/tools.logging "0.3.1"]
                  [org.immutant/web "2.1.6"]
                  [ring-server "0.4.0"]
                  [ring "1.5.0"]
@@ -26,8 +28,6 @@
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7" :exclusions [org.clojure/tools.reader]]
                  [cljs-ajax "0.5.8"]
-                 [org.clojure/core.async "0.2.395"]
-                 [org.clojure/tools.logging "0.3.1"]
                  [org.tobereplaced/nio.file "0.4.0"]
                  [com.taoensso/tempura "1.0.0"]]
 
