@@ -2,10 +2,15 @@
   (:require [accountant.core :as accountant]
             [ajax.core :as ajax]
             [clojure.string :as string]
+            [hyphen-keeper.i18n :as i18n]
+            [hyphen-keeper.util :refer [hyphenation-valid?]]
             [reagent.core :as reagent]
             [reagent.session :as session]
             [secretary.core :as secretary :include-macros true]
-            [hyphen-keeper.util :refer [hyphenation-valid?]]))
+            [taoensso.tempura :as tempura]))
+
+(def lang (keyword (i18n/default-lang)))
+(def tr (partial tempura/tr {:dict i18n/translations} [lang]))
 
 (defonce app-state
   (reagent/atom
@@ -99,10 +104,10 @@
     [:div.btn-group
      [:button.btn.btn-default
       {:on-click start}
-      [:span.glyphicon.glyphicon-edit {:aria-hidden true}] " Edit"]
+      [:span.glyphicon.glyphicon-edit {:aria-hidden true}] " " (tr [:edit])]
      [:button.btn.btn-default
-      {:on-click #(when (js/confirm (str "Really delete hyphenation pattern for " word "?")) (remove))}
-      [:span.glyphicon.glyphicon-trash {:aria-hidden true}] " Delete"]]]])
+      {:on-click #(when (js/confirm (tr [:delete-confirm] [word])) (remove))}
+      [:span.glyphicon.glyphicon-trash {:aria-hidden true}] " " (tr [:delete])]]]])
 
 (defn- hyphenation-pattern-edit-ui
   [word new-hyphenation new-suggestion stop save]
@@ -112,8 +117,8 @@
                 (not valid?) "has-error"
                 same-as-suggested? "has-warning")
         help-text (cond
-                    (not valid?) "The hyphenation is not valid"
-                    same-as-suggested? "The hyphenation is the same as the suggestion")]
+                    (not valid?) (tr [:not-valid])
+                    same-as-suggested? (tr [:same-as-suggested]))]
     [:tr
      [:td word]
      [:td
@@ -135,10 +140,10 @@
        [:button.btn.btn-default
         {:on-click save
          :disabled (when (or (not valid?) same-as-suggested?) "disabled")}
-        [:span.glyphicon.glyphicon-ok {:aria-hidden true}] " Save"]
+        [:span.glyphicon.glyphicon-ok {:aria-hidden true}] " " (tr [:save])]
        [:button.btn.btn-default
         {:on-click stop}
-        [:span.glyphicon.glyphicon-remove {:aria-hidden true}] " Cancel"]]]]))
+        [:span.glyphicon.glyphicon-remove {:aria-hidden true}] " " (tr [:cancel])]]]]))
 
 (defn hyphenation-pattern-item-ui [{:keys [hyphenation] :as pattern}]
   (let [editing (reagent/atom false)
@@ -166,10 +171,11 @@
           [hyphenation-pattern-edit-ui word new-hyphenation new-suggestion stop save])))))
 
 (defn word-ui []
-  (let [label "Word"
+  (let [label (tr [:word])
         already-defined? (contains? @hyphenations @word)
         klass (when already-defined? "has-warning")
-        help-text (when already-defined? "Word has already been defined. Use Edit to change it")]
+        help-text (when already-defined?
+                    (tr [:already-defined]))]
     [:div.form-group
      {:class klass}
      [:label.control-label {:for "wordInput"} label]
@@ -188,7 +194,7 @@
        [:span#wordHelp.help-block help-text])]))
 
 (defn hyphenation-ui []
-  (let [label "Corrected Hyphenation"
+  (let [label (tr [:corrected-hyphenation])
         blank? (or (string/blank? @word) (string/blank? @suggested-hyphenation))
         valid? (or blank? (hyphenation-valid? @hyphenation @word))
         same-as-suggested? (and (not blank?) (= @hyphenation @suggested-hyphenation))
@@ -196,8 +202,8 @@
                 (not valid?) "has-error"
                 same-as-suggested? "has-warning")
         help-text (cond
-                    (not valid?) "The hyphenation is not valid"
-                    same-as-suggested? "The hyphenation is the same as the suggestion")]
+                    (not valid?) (tr [:not-valid])
+                    same-as-suggested? (tr [:same-as-suggested]))]
     [:div.form-group
      {:class klass}
      [:label.control-label {:for "hyphenationInput"} label]
@@ -219,7 +225,7 @@
                            (not= @hyphenation @suggested-hyphenation))
                   (let [pattern {:word @word :hyphenation @hyphenation :spelling @spelling}
                         on-success (fn []
-                                     (set-feedback! "Word has been added" :success)
+                                     (set-feedback! (tr [:add-success]) :success)
                                      ;; reset all form fields as if we had submitted the form
                                      (reset! word "")
                                      (reset! suggested-hyphenation "")
@@ -227,14 +233,16 @@
                                      ;; reload the patterns
                                      (load-hyphenation-patterns! @spelling @word))
                         on-error (fn [details]
-                                   (set-feedback! (str "Failed to add hyphenation pattern: " details) :danger))]
+                                   (set-feedback!
+                                    (tr [:add-fail] [details])
+                                    :danger))]
                     (add-hyphenation-pattern! pattern on-success on-error)))
      :disabled (when (or (string/blank? @word)
                          (not (hyphenation-valid? @hyphenation @word))
                          (contains? @hyphenations @word)
                          (= @hyphenation @suggested-hyphenation))
                  "disabled")}
-    "Add"]])
+    (tr [:add])]])
 
 (defn feedback-ui [feedback]
   (let [{:keys [kind message]} @feedback
@@ -249,13 +257,13 @@
                           (reset! spelling (-> e .-target .-value js/parseInt))
                           (load-hyphenation-patterns! @spelling @word)
                           (lookup-hyphenation-pattern! @spelling @word))}
-    [:option {:value 0} "Old Spelling"]
-    [:option {:value 1} "New Spelling"]]])
+    [:option {:value 0} (tr [:old-spelling])]
+    [:option {:value 1} (tr [:new-spelling])]]])
 
 (defn search-ui [search]
   [:input.form-control
    {:type "text"
-    :placeholder "Search"
+    :placeholder (tr [:search])
     :value @search
     :on-change (fn [e]
                  (reset! search (-> e .-target .-value))
@@ -263,7 +271,7 @@
 
 (defn suggested-hyphenation-ui []
   (let [id "suggestedHyphenation"
-        label "Suggested Hyphenation"]
+        label (tr [:suggested-hyphenation])]
     [:div.form-group
      [:label {:for id} label]
      [:input.form-control
@@ -279,10 +287,11 @@
 (defn hyphenation-lookup-ui [spelling word]
   (when (= @spelling 1)
     [:div
-     [:h2 "Lookup"]
+     [:h2 (tr [:lookup])]
      (let [disabled (when (string/blank? word) "disabled")]
        [:div.row
-        [:div.btn-group {:role "group" :aria-label "Buttons for hyphenation lookup"}
+        [:div.btn-group {:role "group"
+                         :aria-label (tr [:lookup-buttons])}
          (button "Duden" (str "http://www.duden.de/suchen/dudenonline/" word) disabled)
          (button "TU Chemnitz" (str "http://dict.tu-chemnitz.de/?query=" word) disabled)
          (button "PONS" (str "http://de.pons.eu/dict/search/results/?l=dede&q=" word) disabled)]])]))
@@ -296,16 +305,16 @@
        :data-toggle "collapse"
        :data-target "#navbar-collapse"
        :aria-expanded "false"}
-      [:span.sr-only "Toggle navigation"]
+      [:span.sr-only (tr [:toggle-nav])]
       [:span.icon-bar]
       [:span.icon-bar]
       [:span.icon-bar]]
-     [:a.navbar-brand {:href "/"} "Hyphenation"]]
+     [:a.navbar-brand {:href "/"} (tr [:brand])]]
     [:div#navbar-collapse.navbar-collapse.collapse
      [:ul.nav.navbar-nav.navbar-right
       [:li
        (if (= active :edit) {:class "active"} {})
-       [:a {:href "/edit"} "Edit"]]]]]])
+       [:a {:href "/edit"} (tr [:edit])]]]]]])
 
 ;; -------------------------
 ;; Views
@@ -313,7 +322,7 @@
 (defn home-page-ui []
   [:div.container
    [navbar-ui :insert]
-   [:h2 "Insert Hyphenations"]
+   [:h2 (tr [:insert-hyphenations])]
    [:div.row
     [:div.col-md-6
      [:div.form
@@ -324,10 +333,10 @@
       [hyphenation-add-ui]
       [feedback-ui feedback]]]]
    [hyphenation-lookup-ui spelling @word]
-   [:h2 "Similar words"]
+   [:h2 (tr [:similar])]
    [:div.row
     [:table#hyphenations.table.table-striped
-     [:thead [:tr [:th "Word"] [:th "Hyphenation"]]]
+     [:thead [:tr [:th (tr [:word])] [:th (tr [:hyphenation])]]]
      [:tbody
       (for [[word pattern] (:hyphenations @app-state)]
         ^{:key word} [hyphenation-pattern-ui pattern])]]]])
@@ -335,7 +344,7 @@
 (defn edit-page-ui []
   [:div.container
    [navbar-ui :edit]
-   [:h2 "Edit Hyphenations"]
+   [:h2 (tr [:edit-hyphenations])]
    [:div.row
     [:div.col-md-6
      [spelling-ui]]
@@ -343,7 +352,7 @@
      [search-ui word]]]
    [:div.row
     [:table#hyphenations.table.table-striped
-     [:thead [:tr [:th "Word"] [:th "Hyphenation"] [:th ""]]]
+     [:thead [:tr [:th (tr [:word])] [:th (tr [:hyphenation])] [:th ""]]]
      [:tbody
       (for [[word pattern] (:hyphenations @app-state)]
         ^{:key word} [hyphenation-pattern-item-ui pattern])]]]])
