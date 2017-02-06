@@ -313,6 +313,9 @@
     [:div#navbar-collapse.navbar-collapse.collapse
      [:ul.nav.navbar-nav.navbar-right
       [:li
+       (if (= active :insert) {:class "active"} {})
+       [:a {:href "/"} (tr [:add])]]
+      [:li
        (if (= active :edit) {:class "active"} {})
        [:a {:href "/edit"} (tr [:edit])]]]]]])
 
