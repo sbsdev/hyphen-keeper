@@ -9,7 +9,7 @@
   (or (lang-attribute) "de"))
 
 (def translations
-  {:en {:brand "Hyphenation"
+  {:en {:brand "Hyphenations"
         :edit "Edit"
         :delete "Delete"
         :save "Save"
@@ -34,7 +34,7 @@
         :similar "Similar words"
         :old-spelling "Old Spelling"
         :new-spelling "New Spelling"}
-   :de {:brand "Trennungen"
+   :de {:brand "Hyphenations"
         :edit "Editieren"
         :delete "Löschen"
         :save "Speichern"
