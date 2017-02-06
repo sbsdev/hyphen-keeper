@@ -195,6 +195,7 @@
 
 (defn hyphenation-ui []
   (let [label (tr [:corrected-hyphenation])
+        already-defined? (contains? @hyphenations @word)
         blank? (or (string/blank? @word) (string/blank? @suggested-hyphenation))
         valid? (or blank? (hyphenation-valid? @hyphenation @word))
         same-as-suggested? (and (not blank?) (= @hyphenation @suggested-hyphenation))
@@ -204,45 +205,48 @@
         help-text (cond
                     (not valid?) (tr [:not-valid])
                     same-as-suggested? (tr [:same-as-suggested]))]
-    [:div.form-group
-     {:class klass}
-     [:label.control-label {:for "hyphenationInput"} label]
-     [:input.form-control
-      {:type "text"
-       :placeholder label
-       :aria-describedby "hyphenationHelp"
-       :value @hyphenation
-       :on-change #(reset! hyphenation (-> % .-target .-value string/lower-case))}]
-     (when help-text
-       [:span#hyphenationHelp.help-block help-text])]))
+    (when-not already-defined?
+      [:div.form-group
+       {:class klass}
+       [:label.control-label {:for "hyphenationInput"} label]
+       [:input.form-control
+        {:type "text"
+         :placeholder label
+         :aria-describedby "hyphenationHelp"
+         :value @hyphenation
+         :on-change #(reset! hyphenation (-> % .-target .-value string/lower-case))}]
+       (when help-text
+         [:span#hyphenationHelp.help-block help-text])])))
 
 (defn- hyphenation-add-ui []
-  [:div.form-group
-   [:button.btn.btn-default
-    {:on-click #(when (and (not (string/blank? @word))
-                           (hyphenation-valid? @hyphenation @word)
-                           (not (contains? @hyphenations @word))
-                           (not= @hyphenation @suggested-hyphenation))
-                  (let [pattern {:word @word :hyphenation @hyphenation :spelling @spelling}
-                        on-success (fn []
-                                     (set-feedback! (tr [:add-success]) :success)
-                                     ;; reset all form fields as if we had submitted the form
-                                     (reset! word "")
-                                     (reset! suggested-hyphenation "")
-                                     (reset! hyphenation "")
-                                     ;; reload the patterns
-                                     (load-hyphenation-patterns! @spelling @word))
-                        on-error (fn [details]
-                                   (set-feedback!
-                                    (tr [:add-fail] [details])
-                                    :danger))]
-                    (add-hyphenation-pattern! pattern on-success on-error)))
-     :disabled (when (or (string/blank? @word)
-                         (not (hyphenation-valid? @hyphenation @word))
-                         (contains? @hyphenations @word)
-                         (= @hyphenation @suggested-hyphenation))
-                 "disabled")}
-    (tr [:add])]])
+  (let [already-defined? (contains? @hyphenations @word)]
+    (when-not already-defined?
+      [:div.form-group
+       [:button.btn.btn-default
+        {:on-click #(when (and (not (string/blank? @word))
+                               (hyphenation-valid? @hyphenation @word)
+                               (not (contains? @hyphenations @word))
+                               (not= @hyphenation @suggested-hyphenation))
+                      (let [pattern {:word @word :hyphenation @hyphenation :spelling @spelling}
+                            on-success (fn []
+                                         (set-feedback! (tr [:add-success]) :success)
+                                         ;; reset all form fields as if we had submitted the form
+                                         (reset! word "")
+                                         (reset! suggested-hyphenation "")
+                                         (reset! hyphenation "")
+                                         ;; reload the patterns
+                                         (load-hyphenation-patterns! @spelling @word))
+                            on-error (fn [details]
+                                       (set-feedback!
+                                        (tr [:add-fail] [details])
+                                        :danger))]
+                        (add-hyphenation-pattern! pattern on-success on-error)))
+         :disabled (when (or (string/blank? @word)
+                             (not (hyphenation-valid? @hyphenation @word))
+                             (contains? @hyphenations @word)
+                             (= @hyphenation @suggested-hyphenation))
+                     "disabled")}
+        (tr [:add])]])))
 
 (defn feedback-ui [feedback]
   (let [{:keys [kind message]} @feedback
@@ -271,15 +275,17 @@
 
 (defn suggested-hyphenation-ui []
   (let [id "suggestedHyphenation"
-        label (tr [:suggested-hyphenation])]
-    [:div.form-group
-     [:label {:for id} label]
-     [:input.form-control
-      {:id id
-       :type "text"
-       :placeholder label
-       :disabled "disabled"
-       :value @suggested-hyphenation}]]))
+        label (tr [:suggested-hyphenation])
+        already-defined? (contains? @hyphenations @word)]
+    (when-not already-defined?
+      [:div.form-group
+       [:label {:for id} label]
+       [:input.form-control
+        {:id id
+         :type "text"
+         :placeholder label
+         :disabled "disabled"
+         :value @suggested-hyphenation}]])))
 
 (defn- button [label href disabled]
   [:a.btn.btn-default {:href href :target "_blank" :disabled disabled} label])
