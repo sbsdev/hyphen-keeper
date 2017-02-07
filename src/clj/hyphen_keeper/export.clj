@@ -42,7 +42,6 @@
       (= (hyphenate/hyphenate word spelling) hyphenation)))
    (map :hyphenation)
    (remove string/blank?) ; drop empty ones
-   (filter #(string/includes? % "-")) ; drop hyphenations w/o a hyphen
    (map string/lower-case) ; make sure it's lowercase
    sort
    (map prepare-for-libhyphen)))
