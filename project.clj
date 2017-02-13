@@ -66,7 +66,8 @@
              {:output-to "target/cljsbuild/public/js/app.js"
               :output-dir "target/uberjar"
               :optimizations :advanced
-              :pretty-print  false}}
+              :pretty-print  false
+              :closure-defines {hyphen-keeper.core/context-path "/hyphenations"}}}
             :app
             {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
              :compiler
@@ -104,7 +105,7 @@
    :css-dirs ["resources/public/css"]
    :ring-handler hyphen-keeper.handler/app}
 
-  :immutant {:war {:context-path "/"
+  :immutant {:war {:context-path "/hyphenations"
                    :name "%p%v%t"
                    :nrepl {:port 40021
                            :start? true}}}

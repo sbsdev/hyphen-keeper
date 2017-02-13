@@ -12,6 +12,12 @@
 (def lang (keyword (i18n/default-lang)))
 (def tr (partial tempura/tr {:dict i18n/translations} [lang]))
 
+;; The context-path is defined statically in the project file and
+;; passed in through a Cljs Compiler
+;; Option (https://github.com/clojure/clojurescript/wiki/Compiler-Options#closure-defines)
+;; see also https://www.martinklepsch.org/posts/parameterizing-clojurescript-builds.html
+(goog-define context-path "")
+
 (defonce app-state
   (reagent/atom
    {:hyphenations {}
@@ -40,7 +46,7 @@
 
 (defn load-hyphenation-patterns!
   [spelling word]
-  (ajax/GET "/api/words"
+  (ajax/GET (str context-path "/api/words")
    :params {:spelling spelling :search word}
    :handler (fn [hyphenations]
               (swap! app-state assoc :hyphenations
@@ -55,7 +61,7 @@
 
 (defn add-hyphenation-pattern!
   [pattern on-success on-error]
-  (ajax/POST "/api/words"
+  (ajax/POST (str context-path "/api/words")
    :params pattern
    :handler on-success
    :error-handler on-error
@@ -63,7 +69,7 @@
 
 (defn remove-hyphenation-pattern!
   [pattern]
-  (ajax/DELETE (str "/api/words/" (:word pattern))
+  (ajax/DELETE (str context-path "/api/words/" (:word pattern))
    :params pattern
    :handler (fn [] (remove-hyphenation! pattern))
    :error-handler (fn [details]
@@ -83,7 +89,7 @@
                      (swap! app-state assoc :hyphenation hyphenated)))]
      (lookup-hyphenation-pattern! spelling word handler)))
   ([spelling word handler]
-   (ajax/GET "/api/hyphenate"
+   (ajax/GET (str context-path "/api/hyphenate")
              :params {:word word :spelling spelling}
              :handler handler
              :error-handler (fn [details]
@@ -315,15 +321,15 @@
       [:span.icon-bar]
       [:span.icon-bar]
       [:span.icon-bar]]
-     [:a.navbar-brand {:href "/"} (tr [:brand])]]
+     [:a.navbar-brand {:href (str context-path "/")} (tr [:brand])]]
     [:div#navbar-collapse.navbar-collapse.collapse
      [:ul.nav.navbar-nav.navbar-right
       [:li
        (if (= active :insert) {:class "active"} {})
-       [:a {:href "/"} (tr [:add])]]
+       [:a {:href (str context-path "/")} (tr [:add])]]
       [:li
        (if (= active :edit) {:class "active"} {})
-       [:a {:href "/edit"} (tr [:edit])]]]]]])
+       [:a {:href (str context-path "/edit")} (tr [:edit])]]]]]])
 
 ;; -------------------------
 ;; Views
@@ -372,10 +378,10 @@
 ;; -------------------------
 ;; Routes
 
-(secretary/defroute "/" []
+(secretary/defroute (str context-path "/") []
   (session/put! :current-page #'home-page-ui))
 
-(secretary/defroute "/edit" []
+(secretary/defroute (str context-path "/edit") []
   (session/put! :current-page #'edit-page-ui))
 
 ;; -------------------------
