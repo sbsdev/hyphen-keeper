@@ -6,6 +6,7 @@
 
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/data.xml "0.1.0-beta3"]
+                 [org.clojure/data.csv "0.1.4"]
                  [org.clojure/data.zip "0.1.2"]
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/core.async "0.2.395"]
