@@ -6,6 +6,8 @@ This web app will let you maintain a list of words and their approved
 hyphenation patterns. In the background it will generate hyphenation
 pattern files to be used with [[https://github.com/hunspell/hyphen][libhyphen]].
 
+[[https://versions.deps.co/sbsdev/hyphen-keeper][https://versions.deps.co/sbsdev/hyphen-keeper/status.svg]]
+
 ** License
 
 Copyright © 2016 Swiss Library for the Blind, Visually Impaired and Print Disabled.
