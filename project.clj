@@ -35,7 +35,7 @@
   :plugins [[lein-environ "1.0.2"]
             [lein-immutant "2.1.0"]
             [lein-cljsbuild "1.1.1"]
-            [lein-asset-minifier "0.2.7"
+            [lein-asset-minifier "0.4.6"
              :exclusions [org.clojure/clojure]]
             [org.clojars.cvillecsteele/lein-git-version "1.0.3"]]
 
@@ -57,8 +57,8 @@
   :resource-paths ["resources" "target/cljsbuild"]
 
   :minify-assets
-  {:assets
-   {"resources/public/css/site.min.css" "resources/public/css/site.css"}}
+  [[:css {:source "resources/public/css/site.css"
+          :target "resources/public/css/site.min.css"}]]
 
   :cljsbuild
   {:builds {:min
