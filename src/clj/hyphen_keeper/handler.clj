@@ -26,7 +26,7 @@
    [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
    [:meta {:name "viewport"
            :content "width=device-width, initial-scale=1"}]
-   (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")])
+   (include-css "/css/bootstrap.min.css")])
 
 (defn loading-page [lang]
   (html5
