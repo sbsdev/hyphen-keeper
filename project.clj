@@ -4,37 +4,37 @@
   :license {:name "GNU Affero General Public License"
             :url "http://www.gnu.org/licenses/agpl-3.0.html"}
 
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.clojure/data.xml "0.1.0-beta3"]
                  [org.clojure/data.csv "0.1.4"]
-                 [org.clojure/data.zip "0.1.2"]
+                 [org.clojure/data.zip "0.1.3"]
                  [org.clojure/data.json "0.2.6"]
-                 [org.clojure/core.async "0.2.395"]
-                 [org.clojure/tools.logging "0.3.1"]
-                 [org.immutant/web "2.1.6"]
-                 [ring-server "0.4.0"]
-                 [ring "1.5.0"]
-                 [ring/ring-defaults "0.2.1"]
-                 [ring/ring-json "0.4.0"]
+                 [org.clojure/core.async "0.4.490"]
+                 [org.clojure/tools.logging "0.5.0-alpha.1"]
+                 [org.immutant/web "2.1.10" :exclusions [ring/ring-core]]
+                 [ring-server "0.5.0"]
+                 [ring "1.7.1"]
+                 [ring/ring-defaults "0.3.2"]
+                 [ring/ring-json "0.4.0" :exclusions [cheshire]]
                  [ring-middleware-accept "2.0.3"]
-                 [compojure "1.5.1"]
+                 [compojure "1.6.1" :exclusions [ring/ring-codec]]
                  [hiccup "1.0.5"]
-                 [yesql "0.5.3"]
-                 [mysql/mysql-connector-java "5.1.6"]
+                 [yesql "0.5.3" :exclusions [instaparse]]
+                 [mysql/mysql-connector-java "8.0.15"]
                  [org.daisy.bindings/jhyphen "1.0.0"]
-                 [org.clojure/clojurescript "1.9.229" :scope "provided"]
-                 [reagent "0.6.0"]
-                 [reagent-utils "0.2.0"]
-                 [yogthos/config "0.8"]
+                 [org.clojure/clojurescript "1.10.520" :scope "provided"]
+                 [reagent "0.8.1"]
+                 [reagent-utils "0.3.2"]
+                 [yogthos/config "1.1.1"]
                  [secretary "1.2.3"]
-                 [venantius/accountant "0.1.7" :exclusions [org.clojure/tools.reader]]
-                 [cljs-ajax "0.5.8"]
+                 [venantius/accountant "0.2.4"]
+                 [cljs-ajax "0.8.0" :exclusions [com.fasterxml.jackson.core/jackson-core]]
                  [org.tobereplaced/nio.file "0.4.0"]
-                 [com.taoensso/tempura "1.0.0"]]
+                 [com.taoensso/tempura "1.2.1"]]
 
   :plugins [[lein-environ "1.0.2"]
             [lein-immutant "2.1.0"]
-            [lein-cljsbuild "1.1.1"]
+            [lein-cljsbuild "1.1.7"]
             [org.clojars.cvillecsteele/lein-git-version "1.2.7"]]
 
   :ring {:handler hyphen-keeper.handler/app
@@ -81,9 +81,9 @@
   {:http-server-root "public"
    :server-port 3449
    :nrepl-port 7002
-   :nrepl-middleware ["cemerick.piggieback/wrap-cljs-repl"
-                      "cider.nrepl/cider-middleware"
-                      "refactor-nrepl.middleware/wrap-refactor"
+   :nrepl-middleware [cider.piggieback/wrap-cljs-repl
+                      cider.nrepl/cider-middleware
+                      refactor-nrepl.middleware/wrap-refactor
                       ]
    :css-dirs ["resources/public/css"]
    :ring-handler hyphen-keeper.handler/site}
@@ -95,24 +95,21 @@
                    :nrepl {:port 40021
                            :start? true}}}
 
-  :profiles {:dev {:repl-options {:init-ns hyphen-keeper.repl
-                                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-
-                   :dependencies [[ring/ring-mock "0.3.0"]
-                                  [ring/ring-devel "1.5.0"]
-                                  [prone "1.1.2"]
-                                  [figwheel-sidecar "0.5.8"]
-                                  [org.clojure/tools.nrepl "0.2.12"]
-                                  [com.cemerick/piggieback "0.2.2-SNAPSHOT"]
-                                  [pjstadig/humane-test-output "0.8.1"]
+  :profiles {:dev {:repl-options {:init-ns hyphen-keeper.repl}
+                   :dependencies [[ring/ring-mock "0.3.2" :exclusions [cheshire ring/ring-codec]]
+                                  [ring/ring-devel "1.7.1"]
+                                  [prone "1.6.1"]
+                                  [figwheel-sidecar "0.5.18" :exclusions [args4j]]
+                                  [cider/piggieback "0.4.0"]
+                                  [pjstadig/humane-test-output "0.9.0"]
                                   ]
 
                    :source-paths ["env/dev/clj"]
-                   :plugins [[lein-figwheel "0.5.8"]
-                             [cider/cider-nrepl "0.15.0-SNAPSHOT"]
+                   :plugins [[lein-figwheel "0.5.18" :exclusions [org.clojure/clojure]]
+                             [cider/cider-nrepl "0.21.1"]
                              [org.clojure/tools.namespace "0.3.0-alpha2"
                               :exclusions [org.clojure/tools.reader]]
-                             [refactor-nrepl "2.3.0-SNAPSHOT"
+                             [refactor-nrepl "2.4.0"
                               :exclusions [org.clojure/clojure]]
                              ]
 
