@@ -12,7 +12,6 @@
 /env/prod/clj/hyphen_keeper/version.clj
 /env/dev/clj/hyphen_keeper/version.clj
 /out
-/resources/public/css/*.min.css
 /resources/public/js
 /target
 pom.xml
