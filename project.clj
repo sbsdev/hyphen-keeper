@@ -92,8 +92,7 @@
                 :path "env/prod/clj/hyphen_keeper"}
   :immutant {:war {:context-path "/hyphenations"
                    :name "%p%v%t"
-                   :nrepl {:port 40021
-                           :start? true}}}
+                   }}
 
   :profiles {:dev {:repl-options {:init-ns hyphen-keeper.repl}
                    :dependencies [[ring/ring-mock "0.3.2" :exclusions [cheshire ring/ring-codec]]
