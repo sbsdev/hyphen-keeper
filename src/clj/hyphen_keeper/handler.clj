@@ -10,7 +10,6 @@
              [export :as export]
              [hyphenate :as hyphenate]
              [middleware :refer [wrap-api-middleware wrap-site-middleware]]]
-            [immutant.util :refer [context-path]]
             [ring.util.response :as response]))
 
 (def mount-target
@@ -26,7 +25,7 @@
    [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
    [:meta {:name "viewport"
            :content "width=device-width, initial-scale=1"}]
-   (include-css (str (context-path) "/css/bootstrap.min.css"))])
+   (include-css "/css/bootstrap.min.css")])
 
 (defn loading-page [lang]
   (html5
@@ -34,7 +33,7 @@
    (head)
    [:body {:class "body-container"}
     mount-target
-    (include-js (str (context-path) "/js/app.js"))]))
+    (include-js "/js/app.js")]))
 
 (defn- word-list [search spelling offset max-rows]
   (let [resp (if (string/blank? search)

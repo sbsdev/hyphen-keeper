@@ -1,5 +1,6 @@
 (ns hyphen-keeper.middleware
-  (:require [prone.middleware :refer [wrap-exceptions]]
+  (:require [hiccup.middleware :refer [wrap-base-url]]
+            [prone.middleware :refer [wrap-exceptions]]
             [ring.middleware
              [accept :refer [wrap-accept]]
              [defaults :refer [api-defaults site-defaults wrap-defaults]]
@@ -18,5 +19,6 @@
   (-> handler
       (wrap-defaults site-defaults)
       (wrap-accept {:language ["en" "de"]})
+      wrap-base-url
       wrap-exceptions
       wrap-reload))
