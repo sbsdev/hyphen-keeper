@@ -12,5 +12,5 @@
        (not (string/starts-with? hyphenation "-"))
        (not (string/ends-with? hyphenation "-"))
        (not (string/includes? hyphenation "--"))
-       (some? (re-matches #"[a-z\xDF-\xFF-]+" hyphenation))))
+       (some? (re-matches #"[a-z\xC0-\xFF\u0100-\u017F-]+" hyphenation))))
 
