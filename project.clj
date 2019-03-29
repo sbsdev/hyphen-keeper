@@ -37,7 +37,7 @@
             [lein-cljsbuild "1.1.1"]
             [lein-asset-minifier "0.4.6"
              :exclusions [org.clojure/clojure]]
-            [org.clojars.cvillecsteele/lein-git-version "1.0.3"]]
+            [org.clojars.cvillecsteele/lein-git-version "1.2.7"]]
 
   :ring {:handler hyphen-keeper.handler/app
          :uberwar-name "hyphen-keeper.war"}
@@ -94,6 +94,8 @@
    :css-dirs ["resources/public/css"]
    :ring-handler hyphen-keeper.handler/site}
 
+  :git-version {:root-ns "hyphen-keeper"
+                :path "env/prod/clj/hyphen_keeper"}
   :immutant {:war {:context-path "/hyphenations"
                    :name "%p%v%t"
                    :nrepl {:port 40021
