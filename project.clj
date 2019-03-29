@@ -92,7 +92,7 @@
                       "refactor-nrepl.middleware/wrap-refactor"
                       ]
    :css-dirs ["resources/public/css"]
-   :ring-handler hyphen-keeper.handler/app}
+   :ring-handler hyphen-keeper.handler/site}
 
   :immutant {:war {:context-path "/hyphenations"
                    :name "%p%v%t"
