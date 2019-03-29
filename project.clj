@@ -79,18 +79,6 @@
               :source-map true
               :optimizations :none
               :pretty-print  true}}
-
-
-            :devcards
-            {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
-             :figwheel {:devcards true}
-             :compiler {:main "hyphen-keeper.cards"
-                        :asset-path "js/devcards_out"
-                        :output-to "target/cljsbuild/public/js/app_devcards.js"
-                        :output-dir "target/cljsbuild/public/js/devcards_out"
-                        :source-map-timestamp true
-                        :optimizations :none
-                        :pretty-print true}}
             }
    }
 
@@ -120,7 +108,6 @@
                                   [figwheel-sidecar "0.5.8"]
                                   [org.clojure/tools.nrepl "0.2.12"]
                                   [com.cemerick/piggieback "0.2.2-SNAPSHOT"]
-                                  [devcards "0.2.1-7"]
                                   [pjstadig/humane-test-output "0.8.1"]
                                   ]
 
