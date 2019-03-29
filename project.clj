@@ -35,8 +35,6 @@
   :plugins [[lein-environ "1.0.2"]
             [lein-immutant "2.1.0"]
             [lein-cljsbuild "1.1.1"]
-            [lein-asset-minifier "0.4.6"
-             :exclusions [org.clojure/clojure]]
             [org.clojars.cvillecsteele/lein-git-version "1.2.7"]]
 
   :ring {:handler hyphen-keeper.handler/app
@@ -55,10 +53,6 @@
 
   :source-paths ["src/clj" "src/cljc"]
   :resource-paths ["resources" "target/cljsbuild"]
-
-  :minify-assets
-  [[:css {:source "resources/public/css/bootstrap.css"
-          :target "resources/public/css/bootstrap.min.css"}]]
 
   :cljsbuild
   {:builds {:min
@@ -127,8 +121,7 @@
 
                    :env {:dev true}}
 
-             :uberjar {:hooks [minify-assets.plugin/hooks]
-                       :source-paths ["env/prod/clj"]
+             :uberjar {:source-paths ["env/prod/clj"]
                        :prep-tasks ["compile" ["cljsbuild" "once" "min"]]
                        :env {:production true}
                        :aot :all
