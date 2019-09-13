@@ -105,10 +105,10 @@
 
                    :source-paths ["env/dev/clj"]
                    :plugins [[lein-figwheel "0.5.18" :exclusions [org.clojure/clojure]]
-                             [cider/cider-nrepl "0.21.1"]
+                             #_[cider/cider-nrepl "0.21.1"]
                              [org.clojure/tools.namespace "0.3.0-alpha2"
                               :exclusions [org.clojure/tools.reader]]
-                             [refactor-nrepl "2.4.0"
+                             #_[refactor-nrepl "2.4.0"
                               :exclusions [org.clojure/clojure]]
                              ]
 
