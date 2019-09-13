@@ -12,5 +12,14 @@
        (not (string/starts-with? hyphenation "-"))
        (not (string/ends-with? hyphenation "-"))
        (not (string/includes? hyphenation "--"))
-       (some? (re-matches #"[a-z\xC0-\xFF\u0100-\u017F-]+" hyphenation))))
+       ;; only allow chars in the unicode range of Basic Latin (a-z),
+       ;; Latin-1 Supplement (the printable chars in 00C0-00FF) and
+       ;; Latin Extended-A (0100—017F), see
+       ;; https://unicode-table.com/en/blocks/basic-latin,
+       ;; https://unicode-table.com/en/blocks/latin-1-supplement and
+       ;; https://unicode-table.com/en/blocks/latin-extended-a
+
+       ;; Exclude Latin Small Letter Dotless I (0131) because it seems
+       ;; to cause libhyphen to crash
+       (some? (re-matches #"[a-z\xC0-\xFF\u0100-\u0130\u0132-\u017F-]+" hyphenation))))
 
