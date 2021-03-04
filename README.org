@@ -1,3 +1,5 @@
+Note: The functionality contained in this repo has been migrated to [[https://github.com/sbsdev/daisyproducer2][daisyproducer2]].
+
 * Hyphen Keeper
 
 A small web app to keep a whitelist of approved hyphenation patterns.
